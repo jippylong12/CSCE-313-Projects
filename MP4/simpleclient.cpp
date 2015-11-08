@@ -61,8 +61,11 @@ int main(int argc, char * argv[]) {
 
   cout << "Establishing control channel... " << flush;
   RequestChannel chan("control", RequestChannel::CLIENT_SIDE);
-  cout << "done." << endl;;
-
+  cout << "done." << endl;
+  Thread id[3];
+  for(int i=0; i<3;i++){
+	  pthread_create(&id,0,RT,&i)
+  }
   /* -- Start sending a sequence of requests */
 
   string reply1 = chan.send_request("hello");
@@ -88,4 +91,20 @@ int main(int argc, char * argv[]) {
   cout << "Reply to request 'quit' is '" << reply4 << "'" << endl;
 
   usleep(1000000);
+}
+void RT(void *arg)
+{
+	int person=*(int *)arg;
+	 string reply5 = chan.send_request("newthread");
+	cout << "Reply to request 'newthread' is " << reply5 << "'" << endl;
+	RequestChannel chan2(reply5, RequestChannel::CLIENT_SIDE);
+}
+
+void WT(void* arg){
+	string channel_name=control.send_request("new thread");
+	RequestChannel channel_ret=RequestChannel(channel_name,RequestChannel::CLIENT_SIDE);
+	while(true){
+		string nq=BB.pull(); // pulls request from buffer
+		string resp=channel_ret.send
+	}
 }
