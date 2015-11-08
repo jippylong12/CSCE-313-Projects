@@ -9,7 +9,7 @@ class BB{ //bounded buffer
 	Semaphore* mut; // mutual exclusion
 	vector<string> data;
 public:
-	BB(int b){
+	BB(int b=10){
 		full=new Semaphore(0);
 		empty=new Semaphore(b);
 		mut=new Semaphore(1);
