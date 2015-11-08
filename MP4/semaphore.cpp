@@ -17,7 +17,9 @@ int Semaphore::P(){
 int Semaphore:: V(){
     pthread_mutex_lock(&m);
     value++;
-	if(value<0)
+	if(value>0)
+	{
 		pthread_cond_signal(&c);
-	pthread_mutex_unlock(&m);
+	    pthread_mutex_unlock(&m);
+	}
 }
