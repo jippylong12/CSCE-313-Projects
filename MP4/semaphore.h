@@ -22,7 +22,8 @@
 /*--------------------------------------------------------------------------*/
 
 #include <pthread.h>
-
+#include <stdio.h>
+#include <stdlib.h>
 /*--------------------------------------------------------------------------*/
 /* DATA STRUCTURES */ 
 /*--------------------------------------------------------------------------*/
@@ -44,18 +45,17 @@ private:
   /* -- INTERNAL DATA STRUCTURES
      You may need to change them to fit your implementation. */
 
-  int             value;
+  int value;
   pthread_mutex_t m;
   pthread_cond_t  c;
 
 public:
 
   /* -- CONSTRUCTOR/DESTRUCTOR */
-
+  Semaphore();
   Semaphore(int _val);
-
+  Semaphore(const Semaphore& s);
   ~Semaphore();
-
   /* -- SEMAPHORE OPERATIONS */
 
   int P(); //lock checks if counter is above zero or not
