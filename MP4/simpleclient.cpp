@@ -56,6 +56,16 @@ using namespace std;
 
 int main(int argc, char * argv[]) {
 
+    pid_t pid = fork();
+    //if child process
+    //we need to start up the data server
+    if(pid == 0) 
+    {
+        execvp("./dataserver",argv);
+    }
+
+
+
   cout << "CLIENT STARTED:" << endl;
 
   cout << "Establishing control channel... " << flush;
