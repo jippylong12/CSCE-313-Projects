@@ -94,11 +94,24 @@ void process_hello(RequestChannel & _channel, const string & _request) {
   _channel.cwrite("hello to you too");
 }
 
-void process_data(RequestChannel & _channel, const string &  _request) {
+void process_data_Joe(RequestChannel & _channel, const string &  _request) {
   usleep(1000 + (rand() % 5000));
   //_channel.cwrite("here comes data about " + _request.substr(4) + ": " + int2string(random() % 100));
   _channel.cwrite(int2string(rand() % 100));
 }
+
+void process_data_Jane(RequestChannel & _channel, const string &  _request) {
+  usleep(1000 + (rand() % 5000));
+  //_channel.cwrite("here comes data about " + _request.substr(4) + ": " + int2string(random() % 100));
+  _channel.cwrite(int2string(rand() % 100));
+}
+
+void process_data_John(RequestChannel & _channel, const string &  _request) {
+  usleep(1000 + (rand() % 5000));
+  //_channel.cwrite("here comes data about " + _request.substr(4) + ": " + int2string(random() % 100));
+  _channel.cwrite(int2string(rand() % 100));
+}
+
 
 void process_newthread(RequestChannel & _channel, const string & _request) {
   int error;
@@ -136,8 +149,14 @@ void process_request(RequestChannel & _channel, const string & _request) {
   if (_request.compare(0, 5, "hello") == 0) {
     process_hello(_channel, _request);
   }
-  else if (_request.compare(0, 4, "data") == 0) {
-    process_data(_channel, _request);
+  else if (_request.compare(0, 14, "data Joe Smith") == 0) {
+    process_data_Joe(_channel, _request);
+  }
+  else if (_request.compare(0, 15, "data Jane Smith") == 0) {
+    process_data_Jane(_channel, _request);
+  }
+  else if (_request.compare(0, 13, "data John Doe") == 0) {
+    process_data_John(_channel, _request);
   }
   else if (_request.compare(0, 9, "newthread") == 0) {
     process_newthread(_channel, _request);
