@@ -29,6 +29,7 @@
 #include <unistd.h>
 
 #include "reqchannel.h"
+#include "boundedbuffer.h"
 
 using namespace std;
 
