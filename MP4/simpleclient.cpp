@@ -29,6 +29,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <thread>
+#include <vector>
 
 #include "reqchannel.h"
 #include "boundedbuffer.h"
@@ -58,6 +59,14 @@ using namespace std;
 /*--------------------------------------------------------------------------*/
 BB request_buffer;
 vector<BB> response_buffer(3);
+struct Histogram{
+	vector<int> john;
+	vector<int> jane;
+	vector<int> joe;
+	Histogram(){}
+};
+
+Histogram data=Histogram();
 void* RT(void* arg){ //request thread
 	int person=*(int *)arg;
 	if(person==0){//Joe
@@ -79,25 +88,55 @@ void* RT(void* arg){ //request thread
 	
 }
 
+
 void* WT(void* arg){
 	RequestChannel control=*(RequestChannel *)arg;
 	string channel_name=control.send_request("newthread");
 	RequestChannel channel_req=RequestChannel(channel_name,RequestChannel::CLIENT_SIDE);
 	while(true){
 		string nq=request_buffer.pop(); // pulls request from buffer
-		cerr<<"IN WT4";
 		string resp=channel_req.send_request(nq);
-		if(nq.compare(5,3,"Joe"))
+		if(nq.compare(0,14,"data Joe Smith"))
+		{
 			response_buffer[0].push(resp);
-		else if(nq.compare(5,4,"Jane"))
-			response_buffer[1].push(resp);
-		else if(nq.compare(5,4,"John"))
+		}
+		else if(nq.compare(0,13,"data John Doe"))
+		{
 			response_buffer[2].push(resp);
-		
-			//cerr<<"something went wrong in the worker thread";
-		
+		}
+		else if(nq.compare(0,15,"data Jane Smith"))
+		{
+			response_buffer[1].push(resp);
+		}
+
+		else
+		{
+			cerr<<"something went wrong in the worker thread "<<nq<<endl;
+		}
 	}
 	
+}
+
+void* ST(void* arg){
+	int person=*(int *)arg;
+	if(person==0){//Joe
+	
+		while(true){
+			data.joe.push_back(stoi(response_buffer[0].pop()));
+		}
+	}
+	
+	else if(person==1){//Jane
+		while(true){
+			data.jane.push_back(stoi(response_buffer[1].pop()));
+		}
+	}
+	
+	else if (person==2){//John
+		while(true){
+			data.john.push_back(stoi(response_buffer[2].pop()));
+		}
+	}
 }
 
 int main(int argc, char * argv[]) {
@@ -131,11 +170,17 @@ int main(int argc, char * argv[]) {
 			pthread_create (&tid,0, RT, new int(i)); // arguments you want to call this function with
 			
 		}
-		request_buffer.isempty();
 		for(int i=0;i<w;i++)
+		{
 			pthread_create(&tid, 0, WT , &chan);
-
-		pthread_join(tid,NULL);
+		}
+		//response_buffer[0].isempty();
+		/* for (int i=0; i<3;i++)
+		{
+			pthread_create (&tid,0, ST,new int(i)); // arguments you want to call this function with
+			
+		} */
+		//pthread_join(tid,NULL);
 		/*   string reply1 = chan.send_request("hello");
 		cout << "Reply to request 'hello' is '" << reply1 << "'" << endl;
 
@@ -154,7 +199,16 @@ int main(int argc, char * argv[]) {
 
 		string reply7 = chan2.send_request("quit");
 		cout << "Reply to request 'quit' is '" << reply7 << "'" << endl;
-*/
+*/		usleep(10000000);
+		cout<<"JOE's:"<<endl;
+		for(int a:data.joe)
+			cout<<a<<endl;
+		cout<<"JANE's:"<<endl;
+		for(int a:data.jane)
+			cout<<a<<endl;
+		cout<<"JOHN's:"<<endl;
+		for(int a:data.john)
+			cout<<a<<endl;
 		string reply4 = chan.send_request("quit");
 		cout << "Reply to request 'quit' is '" << reply4 << "'" << endl;
 		
