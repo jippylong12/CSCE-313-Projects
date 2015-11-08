@@ -16,3 +16,10 @@ string BB::pop(){
 	empty->V(); //increment the amount of free threads available. 
 	return temp;
 }
+
+void BB:: isempty(){
+	if(data.size()==0)
+		cout<<"empty"<<endl;
+	else
+		cout<<"stuff"<<endl;
+}

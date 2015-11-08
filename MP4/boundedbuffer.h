@@ -1,6 +1,7 @@
 #include "semaphore.h"
 #include <stdlib.h>
 #include<string>
+#include<iostream>
 #include <vector>
 using namespace std;
 class BB{ //bounded buffer
@@ -14,6 +15,7 @@ public:
 		empty=new Semaphore(b);
 		mut=new Semaphore(1);
 	}
+	void isempty();
 	void push(string item);
 	string pop();
 };
