@@ -2,7 +2,7 @@
 void BB:: push(string item){
 	empty->P(); //decrement the empty buffer because we have one less 
 	mut->P(); //
-	data.push_back(item); //push the data we get back from the thread
+	data.insert(data.begin(),item); //push the data we get back from the thread
 	mut->V();
 	full->V();//increment the full buffer
 }

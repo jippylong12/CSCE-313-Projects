@@ -17,4 +17,4 @@ dataserver: dataserver.cpp reqchannel.o
 simpleclient: simpleclient.cpp boundedbuffer.o reqchannel.o semaphore.o
 	g++ -std=c++11 -g -o simpleclient simpleclient.cpp boundedbuffer.o reqchannel.o semaphore.o -lpthread
 clean:
-	rm *.o dataserver simpleclient
+	rm *.o dataserver simpleclient fifo*
