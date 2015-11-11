@@ -30,6 +30,7 @@
 #include <pthread.h>
 #include <thread>
 #include <vector>
+#include <ctime>
 
 #include "reqchannel.h"
 #include "boundedbuffer.h"
@@ -214,6 +215,8 @@ int main(int argc, char * argv[]) {
 				
 		}
 	}
+	clock_t t1;
+	t1= clock(); // start the clock
     pid_t pid = fork();
     //if child process
     //we need to start up the data server
@@ -228,6 +231,7 @@ int main(int argc, char * argv[]) {
 		request_buffer= BB(size);
 		for(int i=0;i<3;i++)
 			response_buffer[i]= BB(size/3);
+		
 		
 		
 		cout << "CLIENT STARTED:" << endl;
@@ -277,6 +281,7 @@ int main(int argc, char * argv[]) {
 		{
 			pthread_join(responseid[i],NULL);
 		}
+		t1= clock() - t1; // end the clock
 		cout<<"N"<<n<<endl;
 		cout<<"B"<<b<<endl;
 		cout<<"W"<<w<<endl;
@@ -312,5 +317,7 @@ int main(int argc, char * argv[]) {
 		cout << "Reply to request 'quit' is '" << reply4 << "'" << endl;
 		
 		usleep(1000000);
+		double time=((double)t1)/CLOCKS_PER_SEC;
+		cout<<" The perfomance time took " << time<<endl;
 		}
 }
