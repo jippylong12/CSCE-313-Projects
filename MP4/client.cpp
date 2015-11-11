@@ -14,6 +14,7 @@
 #include <iostream>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <fstream>
 
 #include <errno.h>
 #include <unistd.h>
@@ -125,7 +126,7 @@ void* WT(void* arg){ //worker thread
 
 void* ST(void* arg){ //stat thread
 	int person=*(int *)arg;
-	cout<<"person "<<person<<endl;
+	//cout<<"person "<<person<<endl;
 	if(person==0){//Joe
 		for(int i = 0; i<n; ++i)
 		{
@@ -283,7 +284,39 @@ int main(int argc, char * argv[]) {
 		cout << "Reply to request 'quit' is '" << reply4 << "'" << endl;
 		
 		usleep(1000000);
-		double time=(double)(end-start)/CLOCKS_PER_SEC;
-		cout<<" The perfomance time took " << time<<endl;
+		double time=((double)(end-start))/CLOCKS_PER_SEC;
+		cout<<" The perfomance time took " << time<<" seconds."<<endl;
+		cout<<"Creating data files for histogram"<<endl; //start outputting data to files
+		
+		//create streams
+		ofstream joeData;
+		ofstream janeData;
+		ofstream johnData;
+		//open files for writing
+		joeData.open("joeData.txt");
+		janeData.open("janeData.txt");
+		johnData.open("johnData.txt");
+		
+		//put stuff in those files. 
+		
+		for(int i = 0; i<n; ++i)
+		{
+			joeData<<data.joe[i]<<'\n';
 		}
+		for(int i = 0; i<n; ++i)
+		{
+			janeData<<data.jane[i]<<'\n';
+		}
+		for(int i = 0; i<n; ++i)
+		{
+			johnData<<data.john[i]<<'\n';
+		}
+		
+		//close files. 
+		joeData.close();
+		janeData.close();
+		johnData.close();
+		
+	}
+		
 }
