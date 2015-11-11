@@ -59,34 +59,51 @@ struct Histogram{ //class that holds the people's responses
 };
 
 void Histogram:: show_histogram(int i){ // frequency of numbers between 0 to 99
+	int count=0;
+	int tenth=0;
 	if(i==0){//john
 		for(int i=0;i<100;i++){
-			int count=0;
+			tenth++;
 			for(int a:john){
 				if(a==i)
 					count++;
 			}
-			cout<<i<<": "<<count<<endl;
+			if(tenth==10){
+				tenth=0;
+				cout<<i-9<<"-"<<i<<":"<<count<<endl;
+				count=0;
+			}
+			
 		}
 	}
 	else if(i==1){//jane
 		for(int i=0;i<100;i++){
-			int count=0;
+			tenth++;
 			for(int a:jane){
 				if(a==i)
 					count++;
 			}
-			cout<<i<<": "<<count<<endl;
+			if(tenth==10){
+				tenth=0;
+				cout<<i-9<<"-"<<i<<":"<<count<<endl;
+				count=0;
+			}
+			
 		}
 	}
 	else if(i==2){//joe
 		for(int i=0;i<100;i++){
-			int count=0;
+			tenth++;
 			for(int a:joe){
 				if(a==i)
 					count++;
 			}
-			cout<<i<<": "<<count<<endl;
+			if(tenth==10){
+				tenth=0;
+				cout<<i-9<<"-"<<i<<":"<<count<<endl;
+				count=0;
+			}
+			
 		}
 	}
 }
