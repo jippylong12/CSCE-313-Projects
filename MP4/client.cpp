@@ -56,7 +56,41 @@ struct Histogram{ //class that holds the people's responses
 	vector<int> jane;
 	vector<int> joe;
 	Histogram(){}
+	void show_histogram(int i);
 };
+
+void Histogram:: show_histogram(int i){ // frequency of numbers between 0 to 99
+	if(i==0){//john
+		for(int i=0;i<100;i++){
+			int count=0;
+			for(int a:john){
+				if(a==i)
+					count++;
+			}
+			cout<<i<<": "<<count<<endl;
+		}
+	}
+	else if(i==1){//jane
+		for(int i=0;i<100;i++){
+			int count=0;
+			for(int a:jane){
+				if(a==i)
+					count++;
+			}
+			cout<<i<<": "<<count<<endl;
+		}
+	}
+	else if(i==2){//joe
+		for(int i=0;i<100;i++){
+			int count=0;
+			for(int a:joe){
+				if(a==i)
+					count++;
+			}
+			cout<<i<<": "<<count<<endl;
+		}
+	}
+}
 int n,b,w;
 Histogram data=Histogram();
 void* RT(void* arg){ //request thread
@@ -271,51 +305,64 @@ int main(int argc, char * argv[]) {
 		cout<<"N"<<n<<endl;
 		cout<<"B"<<b<<endl;
 		cout<<"W"<<w<<endl;
-		cout<<"JOE's:"<<data.joe.size()<<endl;
-		/* for(int a:data.joe)
-			cout<<a<<endl; */
-		cout<<"JANE's:"<<data.jane.size()<<endl;
-		/* for(int a:data.jane)
-			cout<<a<<endl; */
-		cout<<"JOHN's:"<<data.john.size()<<endl;
-		/* for(int a:data.john)
-			cout<<a<<endl; */
+		
 		string reply4 = chan.send_request("quit");
 		cout << "Reply to request 'quit' is '" << reply4 << "'" << endl;
 		
 		usleep(1000000);
-		double time=((double)(end-start))/CLOCKS_PER_SEC;
-		cout<<" The perfomance time took " << time<<" seconds."<<endl;
-		cout<<"Creating data files for histogram"<<endl; //start outputting data to files
+		cout<<"JOE's:"<<data.joe.size()<<endl;
+		data.show_histogram(2);
+		/* for(int a:data.joe)
+			cout<<a<<endl; */
+		cout<<"JANE's:"<<data.jane.size()<<endl;
+		data.show_histogram(1);
+		/* for(int a:data.jane)
+			cout<<a<<endl; */
+		cout<<"JOHN's:"<<data.john.size()<<endl;
+		data.show_histogram(0);
+		/* for(int a:data.john)
+			cout<<a<<endl; */
+// <<<<<<< HEAD
+		// string reply4 = chan.send_request("quit");
+		// cout << "Reply to request 'quit' is '" << reply4 << "'" << endl;
 		
-		//create streams
-		ofstream joeData;
-		ofstream janeData;
-		ofstream johnData;
-		//open files for writing
-		joeData.open("joeData.txt");
-		janeData.open("janeData.txt");
-		johnData.open("johnData.txt");
+		// usleep(1000000);
+		// double time=((double)(end-start))/CLOCKS_PER_SEC;
+		// cout<<" The perfomance time took " << time<<" seconds."<<endl;
+		// cout<<"Creating data files for histogram"<<endl; //start outputting data to files
 		
-		//put stuff in those files. 
+		// //create streams
+		// ofstream joeData;
+		// ofstream janeData;
+		// ofstream johnData;
+		// //open files for writing
+		// joeData.open("joeData.txt");
+		// janeData.open("janeData.txt");
+		// johnData.open("johnData.txt");
 		
-		for(int i = 0; i<n; ++i)
-		{
-			joeData<<data.joe[i]<<'\n';
-		}
-		for(int i = 0; i<n; ++i)
-		{
-			janeData<<data.jane[i]<<'\n';
-		}
-		for(int i = 0; i<n; ++i)
-		{
-			johnData<<data.john[i]<<'\n';
-		}
+		// //put stuff in those files. 
 		
-		//close files. 
-		joeData.close();
-		janeData.close();
-		johnData.close();
+		// for(int i = 0; i<n; ++i)
+		// {
+			// joeData<<data.joe[i]<<'\n';
+		// }
+		// for(int i = 0; i<n; ++i)
+		// {
+			// janeData<<data.jane[i]<<'\n';
+// =======
+		// double time=(double)(end-start)/CLOCKS_PER_SEC;
+		// cout<<" The perfomance time took " << time<<endl;
+// >>>>>>> 4fa16a77620719b287ac48c2cdd1fe36497317b7
+		// }
+		// for(int i = 0; i<n; ++i)
+		// {
+			// johnData<<data.john[i]<<'\n';
+		// }
+		
+		// //close files. 
+		// joeData.close();
+		// janeData.close();
+		// johnData.close();
 		
 	}
 		
