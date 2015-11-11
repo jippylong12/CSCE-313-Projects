@@ -50,7 +50,7 @@ using namespace std;
 /*--------------------------------------------------------------------------*/
 BB request_buffer;
 vector<BB> response_buffer(3);
-struct Histogram{
+struct Histogram{ //class that holds the people's responses
 	vector<int> john;
 	vector<int> jane;
 	vector<int> joe;
@@ -62,7 +62,7 @@ void* RT(void* arg){ //request thread
 	int person=*(int *)arg;
 	if(person==0){//Joe
 		for(int i=0;i<n;i++)
-			request_buffer.push("data Joe Smith");
+			request_buffer.push("data Joe Smith"); //pushes requests into to request buffers
 		
 	}
 	
@@ -83,7 +83,7 @@ void* RT(void* arg){ //request thread
 }
 
 
-void* WT(void* arg){
+void* WT(void* arg){ //worker thread
 	RequestChannel channel_req=*(RequestChannel *)arg;
 	string stringJoe = "data Joe Smith";
 	string stringJane = "data Jane Smith";
@@ -93,17 +93,16 @@ void* WT(void* arg){
 		string nq=request_buffer.pop(); // pulls request from buffer
 		if(nq.compare(stringStop) == 0)
 		{
-			//cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"<<endl;
 			request_buffer.push(nq);
 			string resp=channel_req.send_request("quit");
 			delete (RequestChannel *)arg;
 			return NULL;
 		}
-		string resp=channel_req.send_request(nq);
+		string resp=channel_req.send_request(nq); //send request to server and got a response back
 
 		if(nq.compare(stringJohn)  == 0)
 		{
-			response_buffer[2].push(resp);
+			response_buffer[2].push(resp); //push response into their right response buffers
 			
 		}
 		else if(nq.compare(stringJoe) == 0)
@@ -124,7 +123,7 @@ void* WT(void* arg){
 	
 }
 
-void* ST(void* arg){
+void* ST(void* arg){ //stat thread
 	int person=*(int *)arg;
 	cout<<"person "<<person<<endl;
 	if(person==0){//Joe
@@ -233,23 +232,23 @@ int main(int argc, char * argv[]) {
 		/* -- Start sending a sequence of requests */
 		for (int i=0; i<3;i++)
 		{
-			pthread_create (&requestid[i],0, RT, new int(i)); // arguments you want to call this function with
+			pthread_create (&requestid[i],0, RT, new int(i)); // create three request threads
 			
 		}
 		vector<RequestChannel*> chan1;
 		for(int i=0;i<w;i++)
 		{
 			string channel_name=chan.send_request("newthread");
-			chan1.push_back(new RequestChannel(channel_name,RequestChannel::CLIENT_SIDE));
+			chan1.push_back(new RequestChannel(channel_name,RequestChannel::CLIENT_SIDE)); //creates all the channels for the worker threads
 		}
 		for(int i=0;i<w;i++)
 		{
-			pthread_create(&workerid[i], 0, WT , chan1[i]);
+			pthread_create(&workerid[i], 0, WT , chan1[i]);// create 3 worker threads
 		}
 		//response_buffer[0].isempty();
 	 	 for (int i=0; i<3;i++)
 		{
-			pthread_create (&responseid[i],0, ST,new int(i)); // arguments you want to call this function with
+			pthread_create (&responseid[i],0, ST,new int(i)); // create 3 stat threads
 			
 		} 
 		
@@ -257,7 +256,7 @@ int main(int argc, char * argv[]) {
 		{
 			pthread_join(requestid[i],NULL);
 		}
-		request_buffer.push("#");
+		request_buffer.push("#"); //tells when to stop worker threads
 		
 		for(int i=0; i<w ; i++)
 		{
