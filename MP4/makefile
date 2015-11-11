@@ -21,4 +21,4 @@ client: client.cpp boundedbuffer.o reqchannel.o semaphore.o
 	g++ -std=c++11 -g -o client client.cpp boundedbuffer.o reqchannel.o semaphore.o -lpthread
 
 clean:
-	rm *.o dataserver simpleclient fifo*
+	rm *.o dataserver client fifo*

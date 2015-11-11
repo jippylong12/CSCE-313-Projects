@@ -13,6 +13,7 @@
 #include <cstring>
 #include <iostream>
 #include <sys/types.h>
+#include <sys/time.h>
 #include <sys/stat.h>
 #include <fstream>
 
@@ -56,38 +57,70 @@ struct Histogram{ //class that holds the people's responses
 	vector<int> jane;
 	vector<int> joe;
 	Histogram(){}
-	void show_histogram(int i);
+	void show_histogram(int i, ofstream& file);
 };
 
-void Histogram:: show_histogram(int i){ // frequency of numbers between 0 to 99
+void Histogram:: show_histogram(int i, ofstream& file){ // frequency of numbers between 0 to 99
+	int count=0;
+	int tenth=0;
 	if(i==0){//john
 		for(int i=0;i<100;i++){
-			int count=0;
+			int countFile = 0;
+			tenth++;
 			for(int a:john){
 				if(a==i)
+				{
 					count++;
+					countFile++;
+				}	
 			}
-			cout<<i<<": "<<count<<endl;
+			if(tenth==10){
+				tenth=0;
+				cout<<i-9<<"-"<<i<<":"<<count<<endl;
+				file<<count<<endl;
+				count=0;
+			}
+			
 		}
 	}
 	else if(i==1){//jane
 		for(int i=0;i<100;i++){
-			int count=0;
+			int countFile = 0;
+			tenth++;
 			for(int a:jane){
 				if(a==i)
+				{
 					count++;
+					countFile++;
+				}	
 			}
-			cout<<i<<": "<<count<<endl;
+			if(tenth==10){
+				tenth=0;
+				cout<<i-9<<"-"<<i<<":"<<count<<endl;
+				file<<count<<endl;
+				count=0;
+			}
+			
 		}
 	}
 	else if(i==2){//joe
 		for(int i=0;i<100;i++){
-			int count=0;
+			int countFile = 0;
+			tenth++;
 			for(int a:joe){
 				if(a==i)
+				{
 					count++;
+					countFile++;
+				}	
 			}
-			cout<<i<<": "<<count<<endl;
+			if(tenth==10){
+				tenth=0;
+				cout<<i-9<<"-"<<i<<":"<<count<<endl;
+				file<<count<<endl;
+				count=0;
+			}
+			
 		}
 	}
 }
@@ -190,9 +223,17 @@ void* ST(void* arg){ //stat thread
 	return NULL;
 }
 
+//clock function for timing. 
+//I'd like to thank Jason on stackoverflow for making this custom clock for multithreaded programs
+//it's the only thing in the program that isn't ours. It's just for analysis. 
+double my_clock(void) {
+  struct timeval t;
+  gettimeofday(&t, NULL);
+  return (1.0e-6*t.tv_usec + t.tv_sec);
+}
+
 int main(int argc, char * argv[]) {
-	clock_t begin= clock();
-	clock_t done= clock();
+	
 	int c;
 	n=10000;
 	b=100;
@@ -235,8 +276,10 @@ int main(int argc, char * argv[]) {
 				
 		}
 	}
-	clock_t start,end;
-	start=clock(); // start the clock
+	// clock_t start,end;
+	double start, end;
+	start = my_clock();
+	// start=clock(); // start the clock
     pid_t pid = fork();
     //if child process
     //we need to start up the data server
@@ -301,7 +344,8 @@ int main(int argc, char * argv[]) {
 		{
 			pthread_join(responseid[i],NULL);
 		}
-		end=clock(); // end the clock
+		//end=clock(); // end the clock
+		end = my_clock();
 		cout<<"N"<<n<<endl;
 		cout<<"B"<<b<<endl;
 		cout<<"W"<<w<<endl;
@@ -310,18 +354,37 @@ int main(int argc, char * argv[]) {
 		cout << "Reply to request 'quit' is '" << reply4 << "'" << endl;
 		
 		usleep(1000000);
+		
+		//double time=((double)(end-start))/CLOCKS_PER_SEC;
+		double time = end-start;
+		cout<<" The perfomance time took " << time<<" seconds."<<endl;
+		cout<<"Creating data files for histogram"<<endl; //start outputting data to files
+		//create streams
+		ofstream joeData;
+		ofstream janeData;
+		ofstream johnData;
+		//open files for writing
+		joeData.open("joeData.txt");
+		janeData.open("janeData.txt");
+		johnData.open("johnData.txt");
+		
 		cout<<"JOE's:"<<data.joe.size()<<endl;
-		data.show_histogram(2);
+		data.show_histogram(2,joeData);
 		/* for(int a:data.joe)
 			cout<<a<<endl; */
 		cout<<"JANE's:"<<data.jane.size()<<endl;
-		data.show_histogram(1);
+		data.show_histogram(1,janeData);
 		/* for(int a:data.jane)
 			cout<<a<<endl; */
 		cout<<"JOHN's:"<<data.john.size()<<endl;
-		data.show_histogram(0);
+		data.show_histogram(0,johnData);
 		/* for(int a:data.john)
 			cout<<a<<endl; */
+		
+		//close files. 
+		joeData.close();
+		janeData.close();
+		johnData.close();
 // <<<<<<< HEAD
 		// string reply4 = chan.send_request("quit");
 		// cout << "Reply to request 'quit' is '" << reply4 << "'" << endl;
@@ -331,14 +394,7 @@ int main(int argc, char * argv[]) {
 		// cout<<" The perfomance time took " << time<<" seconds."<<endl;
 		// cout<<"Creating data files for histogram"<<endl; //start outputting data to files
 		
-		// //create streams
-		// ofstream joeData;
-		// ofstream janeData;
-		// ofstream johnData;
-		// //open files for writing
-		// joeData.open("joeData.txt");
-		// janeData.open("janeData.txt");
-		// johnData.open("johnData.txt");
+
 		
 		// //put stuff in those files. 
 		
@@ -359,10 +415,7 @@ int main(int argc, char * argv[]) {
 			// johnData<<data.john[i]<<'\n';
 		// }
 		
-		// //close files. 
-		// joeData.close();
-		// janeData.close();
-		// johnData.close();
+
 		
 	}
 		
