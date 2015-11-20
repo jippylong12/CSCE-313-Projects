@@ -16,6 +16,7 @@
 #include <sys/time.h>
 #include <sys/stat.h>
 #include <fstream>
+#include <algorithm>
 
 #include <errno.h>
 #include <unistd.h>
@@ -50,6 +51,8 @@ using namespace std;
 /*--------------------------------------------------------------------------*/
 /* MAIN FUNCTION */
 /*--------------------------------------------------------------------------*/
+//we need an array of request channel pointers in order for us to construct it in the main. 
+vector<RequestChannel*> RC(3);
 BB request_buffer;
 vector<BB> response_buffer(3);
 struct Histogram{ //class that holds the people's responses
@@ -60,19 +63,13 @@ struct Histogram{ //class that holds the people's responses
 	void show_histogram(int i, ofstream& file);
 };
 
-<<<<<<< HEAD
 void Histogram:: show_histogram(int i, ofstream& file){ // frequency of numbers between 0 to 99
-=======
 void Histogram:: show_histogram(int i){ // frequency of numbers between 0 to 99
->>>>>>> 05eeea5298d4c1b5b76208cd937cf7b675dc5515
 	int count=0;
 	int tenth=0;
 	if(i==0){//john
 		for(int i=0;i<100;i++){
-<<<<<<< HEAD
 			int countFile = 0;
-=======
->>>>>>> 05eeea5298d4c1b5b76208cd937cf7b675dc5515
 			tenth++;
 			for(int a:john){
 				if(a==i)
@@ -87,23 +84,16 @@ void Histogram:: show_histogram(int i){ // frequency of numbers between 0 to 99
 				file<<count<<endl;
 				count=0;
 			}
-<<<<<<< HEAD
-=======
 			if(tenth==10){
 				tenth=0;
 				cout<<i-9<<"-"<<i<<":"<<count<<endl;
 				count=0;
-			}
->>>>>>> 05eeea5298d4c1b5b76208cd937cf7b675dc5515
-			
+			}			
 		}
 	}
 	else if(i==1){//jane
 		for(int i=0;i<100;i++){
-<<<<<<< HEAD
 			int countFile = 0;
-=======
->>>>>>> 05eeea5298d4c1b5b76208cd937cf7b675dc5515
 			tenth++;
 			for(int a:jane){
 				if(a==i)
@@ -115,10 +105,7 @@ void Histogram:: show_histogram(int i){ // frequency of numbers between 0 to 99
 			if(tenth==10){
 				tenth=0;
 				cout<<i-9<<"-"<<i<<":"<<count<<endl;
-<<<<<<< HEAD
 				file<<count<<endl;
-=======
->>>>>>> 05eeea5298d4c1b5b76208cd937cf7b675dc5515
 				count=0;
 			}
 			
@@ -126,10 +113,7 @@ void Histogram:: show_histogram(int i){ // frequency of numbers between 0 to 99
 	}
 	else if(i==2){//joe
 		for(int i=0;i<100;i++){
-<<<<<<< HEAD
 			int countFile = 0;
-=======
->>>>>>> 05eeea5298d4c1b5b76208cd937cf7b675dc5515
 			tenth++;
 			for(int a:joe){
 				if(a==i)
@@ -141,10 +125,7 @@ void Histogram:: show_histogram(int i){ // frequency of numbers between 0 to 99
 			if(tenth==10){
 				tenth=0;
 				cout<<i-9<<"-"<<i<<":"<<count<<endl;
-<<<<<<< HEAD
 				file<<count<<endl;
-=======
->>>>>>> 05eeea5298d4c1b5b76208cd937cf7b675dc5515
 				count=0;
 			}
 			
@@ -178,44 +159,42 @@ void* RT(void* arg){ //request thread
 }
 
 
-void* WT(void* arg){ //worker thread
-	RequestChannel channel_req=*(RequestChannel *)arg;
-	string stringJoe = "data Joe Smith";
-	string stringJane = "data Jane Smith";
-	string stringJohn = "data John Doe";
-	string stringStop = "#";
-	while(true){
-		string nq=request_buffer.pop(); // pulls request from buffer
-		if(nq.compare(stringStop) == 0)
+void* EHT(void* arg)//event handler thread
+{ 
+	
+	fd_set s; // create the set
+	int maxfd = 0; //for the largest file descriptor value
+	int counterForThreads = 0;
+	while(True)
+	{
+		//we need to fill out the set everytime since select destroys it
+		FD_ZERO(&s); // zero out the set
+		for(int i = 0; i<w-1;++i) //fill the set
 		{
-			request_buffer.push(nq);
-			string resp=channel_req.send_request("quit");
-			delete (RequestChannel *)arg;
-			return NULL;
+			FD_SET(RC[i]-> read_fd(),&s); //fill set with each request channel file descriptor
+			if(s.fd_array[i] > maxfd) //find the largest file descriptor
+			{
+				maxfd = s.fd_array[i];
+			}
+			RC[i] -> cwrite(request_buffer->pop()); //give the request channel something to send to the server
+			// keep count of response plus the connection request
 		}
-		string resp=channel_req.send_request(nq); //send request to server and got a response back
-
-		if(nq.compare(stringJohn)  == 0)
+		//then we will periodically check to see if it is done and then read that. 
+		k=select(maxfd+1,&s,null,null,null); //changes fd_set to set it to the right file descriptor
+		for(i=0; i<w; i++)
 		{
-			response_buffer[2].push(resp); //push response into their right response buffers
-			
-		}
-		else if(nq.compare(stringJoe) == 0)
-		{
-			response_buffer[0].push(resp);
-			
-		}
-		else if(nq.compare(stringJane) == 0)
-		{
-			response_buffer[1].push(resp);
-			
-		}
-		else
-		{
-			cerr<<"something went wrong in the worker thread "<<nq<<endl;
+			if(counterForThreads == k) break; // we have found all the threads possible so there is no need to keep searching
+			if(FD_ISSET(RC[i]->read_fd(),&s))
+			{
+				++counterForThreads;
+				process_request(R[i]-> cread()); // find who it is; 
+				if(request_buffer.size < 1) continue; // we should go to the next iteration if we have nothing in the buffer
+				// do not over pop request buffer bc you will get stuck
+				RC[i]->cwrite(request_buffer->pop());
+			}
 		}
 	}
-	
+	*
 }
 
 void* ST(void* arg){ //stat thread

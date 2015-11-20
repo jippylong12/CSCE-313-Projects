@@ -200,24 +200,3 @@ int main(int argc, char * argv[]) {
   handle_process_loop(control_channel);
 
 }
-/*fd_set s;
-FD_ZERO(&s);
-for i=0 : w-1{
-	FD_SET(RC[i]-> read_fd(),&s);
-	RC[i] -> cwrite(req->pop()); // keep count of response plus the connection request
-	}
-while(){
-	k=select(maxfd+1,&S,null,null,null); //changes fd_set to set it to the right file descriptor
-}
-for(i=0; i<w; i++){
-	if(FD_ISSET(RC[i]->read_fd(),&s)){
-		process(R[i]-> cread()); // find who it is; // do not over pop request buffer bc you will get stuck
-		RC[i]->cwrite(req->pop());
-	}
-}
-Send.req(){
-	cwrite(req);
-	resp=cread();
-}
-}
-*/
