@@ -64,15 +64,11 @@ struct Histogram{ //class that holds the people's responses
 void Histogram:: show_histogram(int i, ofstream& file){ // frequency of numbers between 0 to 99
 =======
 void Histogram:: show_histogram(int i){ // frequency of numbers between 0 to 99
->>>>>>> 05eeea5298d4c1b5b76208cd937cf7b675dc5515
 	int count=0;
 	int tenth=0;
 	if(i==0){//john
 		for(int i=0;i<100;i++){
-<<<<<<< HEAD
 			int countFile = 0;
-=======
->>>>>>> 05eeea5298d4c1b5b76208cd937cf7b675dc5515
 			tenth++;
 			for(int a:john){
 				if(a==i)
@@ -87,23 +83,17 @@ void Histogram:: show_histogram(int i){ // frequency of numbers between 0 to 99
 				file<<count<<endl;
 				count=0;
 			}
-<<<<<<< HEAD
-=======
 			if(tenth==10){
 				tenth=0;
 				cout<<i-9<<"-"<<i<<":"<<count<<endl;
 				count=0;
 			}
->>>>>>> 05eeea5298d4c1b5b76208cd937cf7b675dc5515
 			
 		}
 	}
 	else if(i==1){//jane
 		for(int i=0;i<100;i++){
-<<<<<<< HEAD
 			int countFile = 0;
-=======
->>>>>>> 05eeea5298d4c1b5b76208cd937cf7b675dc5515
 			tenth++;
 			for(int a:jane){
 				if(a==i)
@@ -115,10 +105,7 @@ void Histogram:: show_histogram(int i){ // frequency of numbers between 0 to 99
 			if(tenth==10){
 				tenth=0;
 				cout<<i-9<<"-"<<i<<":"<<count<<endl;
-<<<<<<< HEAD
 				file<<count<<endl;
-=======
->>>>>>> 05eeea5298d4c1b5b76208cd937cf7b675dc5515
 				count=0;
 			}
 			
@@ -126,10 +113,7 @@ void Histogram:: show_histogram(int i){ // frequency of numbers between 0 to 99
 	}
 	else if(i==2){//joe
 		for(int i=0;i<100;i++){
-<<<<<<< HEAD
 			int countFile = 0;
-=======
->>>>>>> 05eeea5298d4c1b5b76208cd937cf7b675dc5515
 			tenth++;
 			for(int a:joe){
 				if(a==i)
@@ -141,10 +125,7 @@ void Histogram:: show_histogram(int i){ // frequency of numbers between 0 to 99
 			if(tenth==10){
 				tenth=0;
 				cout<<i-9<<"-"<<i<<":"<<count<<endl;
-<<<<<<< HEAD
 				file<<count<<endl;
-=======
->>>>>>> 05eeea5298d4c1b5b76208cd937cf7b675dc5515
 				count=0;
 			}
 			
