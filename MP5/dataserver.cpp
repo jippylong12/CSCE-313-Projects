@@ -213,6 +213,7 @@ for(i=0; i<w; i++){
 	if(FD_ISSET(RC[i]->read_fd(),&s)){
 		process(R[i]-> cread()); // find who it is; // do not over pop request buffer bc you will get stuck
 		RC[i]->cwrite(req->pop());
+		
 	}
 }
 Send.req(){
