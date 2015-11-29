@@ -15,6 +15,8 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/stat.h>
+#include <unistd.h>
+#include <sys/select.h>
 #include <fstream>
 #include <algorithm>
 
@@ -51,20 +53,25 @@ using namespace std;
 /*--------------------------------------------------------------------------*/
 /* MAIN FUNCTION */
 /*--------------------------------------------------------------------------*/
+
+
 //we need an array of request channel pointers in order for us to construct it in the main. 
-vector<RequestChannel*> RC(3);
+vector<RequestChannel*> RC; //the size is determined by the input w of the program
+
+
+//boundary buffer for the request threads
 BB request_buffer;
+//we need three boundary buffers for each person's response. 
 vector<BB> response_buffer(3);
 struct Histogram{ //class that holds the people's responses
 	vector<int> john;
 	vector<int> jane;
 	vector<int> joe;
 	Histogram(){}
-	void show_histogram(int i, ofstream& file);
+	void show_histogram(int i,ofstream& file);
 };
 
 void Histogram:: show_histogram(int i, ofstream& file){ // frequency of numbers between 0 to 99
-void Histogram:: show_histogram(int i){ // frequency of numbers between 0 to 99
 	int count=0;
 	int tenth=0;
 	if(i==0){//john
@@ -165,36 +172,36 @@ void* EHT(void* arg)//event handler thread
 	fd_set s; // create the set
 	int maxfd = 0; //for the largest file descriptor value
 	int counterForThreads = 0;
-	while(True)
+	while(true)
 	{
 		//we need to fill out the set everytime since select destroys it
 		FD_ZERO(&s); // zero out the set
 		for(int i = 0; i<w-1;++i) //fill the set
 		{
 			FD_SET(RC[i]-> read_fd(),&s); //fill set with each request channel file descriptor
-			if(s.fd_array[i] > maxfd) //find the largest file descriptor
+			if(RC[i] -> read_fd() > maxfd) //find the largest file descriptor
 			{
-				maxfd = s.fd_array[i];
+				maxfd = RC[i]->read_fd(); // if is larger than what we have now then we make it the max;
 			}
-			RC[i] -> cwrite(request_buffer->pop()); //give the request channel something to send to the server
+			RC[i] -> cwrite(request_buffer.pop()); //give the request channel something to send to the server
 			// keep count of response plus the connection request
 		}
 		//then we will periodically check to see if it is done and then read that. 
-		k=select(maxfd+1,&s,null,null,null); //changes fd_set to set it to the right file descriptor
-		for(i=0; i<w; i++)
+		
+		int k=select(maxfd+1,&s,NULL,NULL,NULL); //changes fd_set to set it to the right file descriptor
+		for(int i=0; i<w; i++)
 		{
 			if(counterForThreads == k) break; // we have found all the threads possible so there is no need to keep searching
 			if(FD_ISSET(RC[i]->read_fd(),&s))
 			{
 				++counterForThreads;
-				process_request(R[i]-> cread()); // find who it is; 
-				if(request_buffer.size < 1) continue; // we should go to the next iteration if we have nothing in the buffer
+				process_request(RC[i]-> cread()); // find who it is; Have not done process request
+				if(request_buffer.size() < 1) continue; // we should go to the next iteration if we have nothing in the buffer
 				// do not over pop request buffer bc you will get stuck
-				RC[i]->cwrite(request_buffer->pop());
+				RC[i]->cwrite(request_buffer.pop());
 			}
 		}
 	}
-	*
 }
 
 void* ST(void* arg){ //stat thread
@@ -319,15 +326,10 @@ int main(int argc, char * argv[]) {
 			pthread_create (&requestid[i],0, RT, new int(i)); // create three request threads
 			
 		}
-		vector<RequestChannel*> chan1;
 		for(int i=0;i<w;i++)
 		{
 			string channel_name=chan.send_request("newthread");
-			chan1.push_back(new RequestChannel(channel_name,RequestChannel::CLIENT_SIDE)); //creates all the channels for the worker threads
-		}
-		for(int i=0;i<w;i++)
-		{
-			pthread_create(&workerid[i], 0, WT , chan1[i]);// create 3 worker threads
+			RC.push_back(new RequestChannel(channel_name,RequestChannel::CLIENT_SIDE)); //creates all the channels for the worker threads
 		}
 		//response_buffer[0].isempty();
 	 	 for (int i=0; i<3;i++)

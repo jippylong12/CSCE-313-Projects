@@ -19,5 +19,6 @@ public:
 	vector<string> data;
 	void isempty();
 	void push(string item);
+	int size();
 	string pop();
 };

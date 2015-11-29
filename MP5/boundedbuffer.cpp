@@ -17,6 +17,11 @@ string BB::pop(){
 	return temp;
 }
 
+int BB::size()
+{
+	return data.size();
+}
+
 void BB:: isempty(){
 	if(data.size()==0)
 		cout<<"empty"<<endl;
