@@ -195,10 +195,10 @@ void* EHT(void* arg)//event handler thread
 			if(FD_ISSET(RC[i]->read_fd(),&s))
 			{
 				++counterForThreads;
-				process_request(RC[i]-> cread()); // find who it is; Have not done process request
+				string returnString = RC[i]-> cread(); // get the processed data **need a way to know which response buffer to put it in. 
 				if(request_buffer.size() < 1) continue; // we should go to the next iteration if we have nothing in the buffer
 				// do not over pop request buffer bc you will get stuck
-				RC[i]->cwrite(request_buffer.pop());
+				RC[i]->cwrite(request_buffer.pop()); //send another request to data server
 			}
 		}
 	}
