@@ -111,6 +111,7 @@ public:
 
   int write_fd();
   /* Returns the file descriptor used to write to the channel. */
+  
 };
 
 

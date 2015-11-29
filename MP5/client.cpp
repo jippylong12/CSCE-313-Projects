@@ -56,7 +56,7 @@ using namespace std;
 
 
 //we need an array of request channel pointers in order for us to construct it in the main. 
-vector<RequestChannel*> RC; //the size is determined by the input w of the program
+vector<RequestChannel*> RC; //the size is determined by the input w of the program and done in the main
 
 
 //boundary buffer for the request threads
@@ -170,32 +170,56 @@ void* EHT(void* arg)//event handler thread
 { 
 	
 	fd_set s; // create the set
+	fd_set sBackup; //to restore the set
 	int maxfd = 0; //for the largest file descriptor value
-	int counterForThreads = 0;
+	
+	
 	while(true)
 	{
+		s = sBackup; //restore the backup
+		int counterForThreads = 0; //knowing when to exit last for loop
+		
 		//we need to fill out the set everytime since select destroys it
-		FD_ZERO(&s); // zero out the set
-		for(int i = 0; i<w-1;++i) //fill the set
+		//FD_ZERO(&s); // zero out the set
+		for(int i = 0; i<w-1;++i) //fill the set and send the requests
 		{
-			FD_SET(RC[i]-> read_fd(),&s); //fill set with each request channel file descriptor
-			if(RC[i] -> read_fd() > maxfd) //find the largest file descriptor
-			{
-				maxfd = RC[i]->read_fd(); // if is larger than what we have now then we make it the max;
+			if(FD_ISSET(RC[i]->read_fd(),&s) != 1) //if the file descriptor is not in the set already
+			{	
+				FD_SET(RC[i]-> read_fd(),&s); //fill set with each request channel file descriptor
+				if(RC[i] -> read_fd() > maxfd) //if the file descriptor we are at is bigger than the max
+				{
+					maxfd = RC[i]->read_fd(); // make it the new max
+				}
 			}
 			RC[i] -> cwrite(request_buffer.pop()); //give the request channel something to send to the server
 			// keep count of response plus the connection request
 		}
-		//then we will periodically check to see if it is done and then read that. 
 		
-		int k=select(maxfd+1,&s,NULL,NULL,NULL); //changes fd_set to set it to the right file descriptor
-		for(int i=0; i<w; i++)
+		
+		sBackup = s; // back up the set
+		
+		//then we will periodically check to see if a thread is done and then read that. 
+		int k = 0; //how many threads are ready to be checked. 
+		while(k == 0) //while none of the threads are ready. 
+		{
+			k=select(maxfd+1,&s,NULL,NULL,NULL); //check to see if there is a thread ready
+			//Once it breaks the set is destroyed except for the ready threads
+		}
+		
+		//when we get to this point we should have a thread ready and need
+		//to get the response. 
+		for(int i=0; i<w; i++) //check through each request channel
 		{
 			if(counterForThreads == k) break; // we have found all the threads possible so there is no need to keep searching
-			if(FD_ISSET(RC[i]->read_fd(),&s))
+			if(FD_ISSET(RC[i]->read_fd(),&s)) //if we find the file descriptor in this request channel in the set
 			{
-				++counterForThreads;
-				string returnString = RC[i]-> cread(); // get the processed data **need a way to know which response buffer to put it in. 
+				++counterForThreads; //increase the count that is keeping track of how many we have worked on
+				string returnString = RC[i]-> cread(); // get the processed data 
+				FD_CLR(RC[i]->read_fd(),&sBackup); //remove the file descriptor from the set because we used it
+				//This where we put returnString into a response buffer **need a way to know which response buffer to put it in. **
+				
+				
+				
 				if(request_buffer.size() < 1) continue; // we should go to the next iteration if we have nothing in the buffer
 				// do not over pop request buffer bc you will get stuck
 				RC[i]->cwrite(request_buffer.pop()); //send another request to data server
@@ -317,7 +341,7 @@ int main(int argc, char * argv[]) {
 		cout << "done." << endl;
 		
 		pthread_t requestid[3];
-		pthread_t workerid[w];
+		pthread_t eventHandlerid;
 		pthread_t responseid[3];
 		
 		/* -- Start sending a sequence of requests */
@@ -326,16 +350,22 @@ int main(int argc, char * argv[]) {
 			pthread_create (&requestid[i],0, RT, new int(i)); // create three request threads
 			
 		}
+		// create the new Request channels
 		for(int i=0;i<w;i++)
 		{
 			string channel_name=chan.send_request("newthread");
 			RC.push_back(new RequestChannel(channel_name,RequestChannel::CLIENT_SIDE)); //creates all the channels for the worker threads
 		}
+		
+		
+		//create the thread for the eventHandler
+		pthread_create(&eventHandlerid,0,EHT,0); //Austin not sure if this is correct format 
+		
+		
 		//response_buffer[0].isempty();
 	 	 for (int i=0; i<3;i++)
 		{
 			pthread_create (&responseid[i],0, ST,new int(i)); // create 3 stat threads
-			
 		} 
 		
 		for(int i=0; i<3 ; i++)
@@ -343,15 +373,16 @@ int main(int argc, char * argv[]) {
 			pthread_join(requestid[i],NULL);
 		}
 		request_buffer.push("#"); //tells when to stop worker threads
-		
-		for(int i=0; i<w ; i++)
-		{
-			pthread_join(workerid[i],NULL);
-		}
 		for(int i=0; i<3 ; i++)
 		{
 			pthread_join(responseid[i],NULL);
 		}
+		
+		
+		//joining the event handler thread **The EH thread does not exit currently**
+		pthread_join(eventHandlerid,NULL);
+		
+		
 		//end=clock(); // end the clock
 		end = my_clock();
 		cout<<"N"<<n<<endl;
