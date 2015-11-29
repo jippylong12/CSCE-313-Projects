@@ -225,7 +225,7 @@ void* EHT(void* arg)//event handler thread
 				++counterForThreads; //increase the count that is keeping track of how many we have worked on
 				string returnString = RC[i]-> cread(); // get the processed data 
 				num_responses++;
-				cout<<num_responses<<endl;
+				//git cout<<num_responses<<endl;
 				FD_CLR(RC[i]->read_fd(),&sBackup); //remove the file descriptor from the set because we used it
 				//This where we put returnString into a response buffer **need a way to know which response buffer to put it in. **
 				
@@ -383,7 +383,6 @@ int main(int argc, char * argv[]) {
 			pthread_create (&requestid[i],0, RT, new int(i)); // create three request threads
 			
 		}
-		cout<<"here"<<endl;
 		// create the new Request channels
 		for(int i=0;i<w;i++)
 		{
@@ -391,29 +390,25 @@ int main(int argc, char * argv[]) {
 			RC.push_back(new RequestChannel(channel_name,RequestChannel::CLIENT_SIDE)); //creates all the channels for the worker threads
 		}
 		
-		cout<<"here1"<<endl;
 		//create the thread for the eventHandler
 		pthread_create(&eventHandlerid,0,EHT,0); //Austin not sure if this is correct format 
 		
-		cout<<"here2"<<endl;
 		//response_buffer[0].isempty();
 	 	 for (int i=0; i<3;i++)
 		{
 			pthread_create (&responseid[i],0, ST,new int(i)); // create 3 stat threads
 		} 
-		cout<<"here3"<<endl;
+		
 		for(int i=0; i<3 ; i++)
 		{
 			pthread_join(requestid[i],NULL);
 		}
 		pthread_join(eventHandlerid,NULL);
-		cout<<"here4"<<endl;
 		//request_buffer.push("#"); //tells when to stop worker threads
 		for(int i=0; i<3 ; i++)
 		{
 			pthread_join(responseid[i],NULL);
 		}
-		cout<<"here5"<<endl;
 		
 		//joining the event handler thread **The EH thread does not exit currently**
 		
@@ -424,7 +419,10 @@ int main(int argc, char * argv[]) {
 		cout<<"N"<<n<<endl;
 		cout<<"B"<<b<<endl;
 		cout<<"W"<<w<<endl;
-		
+		for(int i=0;i<RC.size();i++){
+			RC[i]->send_request("quit");
+			delete RC[i];
+		}
 		string reply4 = chan.send_request("quit");
 		cout << "Reply to request 'quit' is '" << reply4 << "'" << endl;
 		
@@ -432,7 +430,7 @@ int main(int argc, char * argv[]) {
 		
 		//double time=((double)(end-start))/CLOCKS_PER_SEC;
 		double time = end-start;
-		cout<<" The perfomance time took " << time<<" seconds."<<endl;
+		cout<<"\n \n \n The perfomance time took " << time<<" seconds."<<endl;
 		cout<<"Creating data files for histogram"<<endl; //start outputting data to files
 		//create streams
 		ofstream joeData;
@@ -460,7 +458,7 @@ int main(int argc, char * argv[]) {
 		joeData.close();
 		janeData.close();
 		johnData.close();
-// <<<<<<< HEAD
+
 		// string reply4 = chan.send_request("quit");
 		// cout << "Reply to request 'quit' is '" << reply4 << "'" << endl;
 		
