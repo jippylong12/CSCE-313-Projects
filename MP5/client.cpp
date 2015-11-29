@@ -171,14 +171,18 @@ void* EHT(void* arg)//event handler thread
 	
 	fd_set s; // create the set
 	fd_set sBackup; //to restore the set
+	string stringJoe = "data Joe Smith";
+	string stringJane = "data Jane Smith";
+	string stringJohn = "data John Doe";
 	int maxfd = 0; //for the largest file descriptor value
+	vector<string> response_input; //keeps track of who the responses belong to
+	response_input.resize(w);
+	int num_responses=0;
 	
-	
-	while(true)
+	while(num_responses<(n*3))
 	{
 		s = sBackup; //restore the backup
 		int counterForThreads = 0; //knowing when to exit last for loop
-		
 		//we need to fill out the set everytime since select destroys it
 		//FD_ZERO(&s); // zero out the set
 		for(int i = 0; i<w-1;++i) //fill the set and send the requests
@@ -189,23 +193,28 @@ void* EHT(void* arg)//event handler thread
 				if(RC[i] -> read_fd() > maxfd) //if the file descriptor we are at is bigger than the max
 				{
 					maxfd = RC[i]->read_fd(); // make it the new max
+					
 				}
-			}
-			RC[i] -> cwrite(request_buffer.pop()); //give the request channel something to send to the server
+			if(request_buffer.size() < 1) continue; // we should go to the next iteration if we have nothing in the buffer
+			string send_request=request_buffer.pop();
+			RC[i] -> cwrite(send_request); //give the request channel something to send to the server
+			response_input[i]=send_request;
 			// keep count of response plus the connection request
+			}
+			
 		}
 		
-		
 		sBackup = s; // back up the set
-		
 		//then we will periodically check to see if a thread is done and then read that. 
 		int k = 0; //how many threads are ready to be checked. 
 		while(k == 0) //while none of the threads are ready. 
 		{
+
 			k=select(maxfd+1,&s,NULL,NULL,NULL); //check to see if there is a thread ready
 			//Once it breaks the set is destroyed except for the ready threads
+
 		}
-		
+
 		//when we get to this point we should have a thread ready and need
 		//to get the response. 
 		for(int i=0; i<w; i++) //check through each request channel
@@ -215,14 +224,38 @@ void* EHT(void* arg)//event handler thread
 			{
 				++counterForThreads; //increase the count that is keeping track of how many we have worked on
 				string returnString = RC[i]-> cread(); // get the processed data 
+				num_responses++;
+				cout<<num_responses<<endl;
 				FD_CLR(RC[i]->read_fd(),&sBackup); //remove the file descriptor from the set because we used it
 				//This where we put returnString into a response buffer **need a way to know which response buffer to put it in. **
 				
+				if(response_input[i].compare(stringJoe) == 0)
+				{
+					response_buffer[0].push(returnString);
+					
+				}
+				else if(response_input[i].compare(stringJane) == 0)
+				{
+					response_buffer[1].push(returnString);
+					
+				}
+				else if(response_input[i].compare(stringJohn)  == 0)
+				{
+					response_buffer[2].push(returnString); //push response into their right response buffers
+					
+				}
+				else
+				{
+					cerr<<"something went wrong in the worker thread "<<response_input[i]<<endl;
+				}
+						
 				
-				
-				if(request_buffer.size() < 1) continue; // we should go to the next iteration if we have nothing in the buffer
+				/* if(request_buffer.size() < 1) continue; // we should go to the next iteration if we have nothing in the buffer
 				// do not over pop request buffer bc you will get stuck
-				RC[i]->cwrite(request_buffer.pop()); //send another request to data server
+				string send_request=request_buffer.pop();
+				RC[i]->cwrite(send_request); //send another request to data server
+				response_input[i]=send_request; */
+				
 			}
 		}
 	}
@@ -350,6 +383,7 @@ int main(int argc, char * argv[]) {
 			pthread_create (&requestid[i],0, RT, new int(i)); // create three request threads
 			
 		}
+		cout<<"here"<<endl;
 		// create the new Request channels
 		for(int i=0;i<w;i++)
 		{
@@ -357,30 +391,32 @@ int main(int argc, char * argv[]) {
 			RC.push_back(new RequestChannel(channel_name,RequestChannel::CLIENT_SIDE)); //creates all the channels for the worker threads
 		}
 		
-		
+		cout<<"here1"<<endl;
 		//create the thread for the eventHandler
 		pthread_create(&eventHandlerid,0,EHT,0); //Austin not sure if this is correct format 
 		
-		
+		cout<<"here2"<<endl;
 		//response_buffer[0].isempty();
 	 	 for (int i=0; i<3;i++)
 		{
 			pthread_create (&responseid[i],0, ST,new int(i)); // create 3 stat threads
 		} 
-		
+		cout<<"here3"<<endl;
 		for(int i=0; i<3 ; i++)
 		{
 			pthread_join(requestid[i],NULL);
 		}
-		request_buffer.push("#"); //tells when to stop worker threads
+		pthread_join(eventHandlerid,NULL);
+		cout<<"here4"<<endl;
+		//request_buffer.push("#"); //tells when to stop worker threads
 		for(int i=0; i<3 ; i++)
 		{
 			pthread_join(responseid[i],NULL);
 		}
-		
+		cout<<"here5"<<endl;
 		
 		//joining the event handler thread **The EH thread does not exit currently**
-		pthread_join(eventHandlerid,NULL);
+		
 		
 		
 		//end=clock(); // end the clock
