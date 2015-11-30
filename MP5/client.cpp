@@ -19,6 +19,7 @@
 #include <sys/select.h>
 #include <fstream>
 #include <algorithm>
+#include <signal.h>
 
 #include <errno.h>
 #include <unistd.h>
@@ -69,8 +70,69 @@ struct Histogram{ //class that holds the people's responses
 	vector<int> joe;
 	Histogram(){}
 	void show_histogram(int i,ofstream& file);
+	void show_current();
 };
-
+void Histogram:: show_current(){
+	int count=0;
+	int tenth=0;
+	//john
+	cout<<"JOHN"<<endl;
+		for(int i=0;i<100;i++){
+			tenth++;
+			for(int a:john){
+				if(a==i)
+				{
+					count++;
+				}	
+			}
+			if(tenth==10){
+				tenth=0;
+				cout<<i-9<<"-"<<i<<":"<<count<<endl;
+				count=0;
+			}		
+		}
+		cout<<"total size so far :"<< john.size()<<endl<<endl;
+	//jane
+	cout<<"JANE"<<endl;
+	count=0;
+	tenth=0;
+		for(int i=0;i<100;i++){
+			tenth++;
+			for(int a:jane){
+				if(a==i)
+				{
+					count++;
+				}	
+			}
+			if(tenth==10){
+				tenth=0;
+				cout<<i-9<<"-"<<i<<":"<<count<<endl;
+				count=0;
+			}
+			
+		}
+		cout<<"total size so far :"<< jane.size()<<endl<<endl;
+	//joe
+	count=0;
+	tenth=0;
+	cout<<"JOE"<<endl;
+		for(int i=0;i<100;i++){
+			tenth++;
+			for(int a:joe){
+				if(a==i)
+				{
+					count++;
+				}	
+			}
+			if(tenth==10){
+				tenth=0;
+				cout<<i-9<<"-"<<i<<":"<<count<<endl;
+				count=0;
+			}
+			
+		}
+		cout<<"total size so far :"<< joe.size()<<endl<<"--------------------------"<<endl<<endl<<endl<<endl;
+}
 void Histogram:: show_histogram(int i, ofstream& file){ // frequency of numbers between 0 to 99
 	int count=0;
 	int tenth=0;
@@ -293,6 +355,10 @@ void* ST(void* arg){ //stat thread
 	return NULL;
 }
 
+void catch_alarm(int sig){
+	data.show_current();
+	signal(sig,catch_alarm);
+}
 //clock function for timing. 
 //I'd like to thank Jason on stackoverflow for making this custom clock for multithreaded programs
 //it's the only thing in the program that isn't ours. It's just for analysis. 
@@ -303,7 +369,11 @@ double my_clock(void) {
 }
 
 int main(int argc, char * argv[]) {
-	
+	struct itimerval timer={0};
+	timer.it_value.tv_sec=1;
+	timer.it_interval.tv_sec=1;
+	signal(SIGALRM,&catch_alarm);
+	setitimer(ITIMER_REAL,&timer,NULL);
 	int c;
 	n=10000;
 	b=100;
