@@ -79,8 +79,8 @@ void Histogram:: show_current(){
 	cout<<"JOHN"<<endl;
 		for(int i=0;i<100;i++){
 			tenth++;
-			for(int a:john){
-				if(a==i)
+			for(int a=0;a<john.size();a++){
+				if(john[a]==i)
 				{
 					count++;
 				}	
@@ -98,8 +98,8 @@ void Histogram:: show_current(){
 	tenth=0;
 		for(int i=0;i<100;i++){
 			tenth++;
-			for(int a:jane){
-				if(a==i)
+			for(int a=0;a<jane.size();a++){
+				if(jane[a]==i)
 				{
 					count++;
 				}	
@@ -118,8 +118,8 @@ void Histogram:: show_current(){
 	cout<<"JOE"<<endl;
 		for(int i=0;i<100;i++){
 			tenth++;
-			for(int a:joe){
-				if(a==i)
+			for(int a=0;a<joe.size();a++){
+				if(joe[a]==i)
 				{
 					count++;
 				}	
@@ -369,10 +369,13 @@ double my_clock(void) {
 }
 
 int main(int argc, char * argv[]) {
+	struct sigaction periodic_histogram;
+	periodic_histogram.sa_handler=catch_alarm;
+	periodic_histogram.sa_flags=SA_RESTART; // deals with EINTR errors
 	struct itimerval timer={0};
 	timer.it_value.tv_sec=1;
 	timer.it_interval.tv_sec=1;
-	signal(SIGALRM,&catch_alarm);
+	sigaction(SIGALRM,&periodic_histogram,NULL);
 	setitimer(ITIMER_REAL,&timer,NULL);
 	int c;
 	n=10000;
