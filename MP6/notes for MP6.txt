@@ -1,0 +1,118 @@
+Client.cpp
+main(){
+NetworkRC * nrc [w]
+for i=1:W
+	nrc[i]=new netRC(Client);
+
+}
+
+
+
+
+server.cpp
+
+
+
+main(){
+	netRC* nrc= new netrc(Serv, how to handle req_)
+
+
+}
+
+
+
+void* how to handle req(){
+handle_request_loop()
+}
+
+
+//client constructor
+
+NetworkRC(servername, port)
+
+//server constructor
+NetworkRC( port, backlog,handle _request_function){
+
+//1.accept a connection
+2.start a thread with incoming connection.
+
+
+}
+
+
+we want to build up a client here
+client.cpp
+we need a socket()
+and a connect()
+
+NRC(char* server, short port){
+// lookup
+getaddrinfo(server, port, &hints, &res);
+// make a socket:
+sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+// connect to server. Once successful, the socket becomes ready as the endpoint
+connect(sockfd, res->ai_addr, res->ai_addrlen);
+}
+
+creates client to server path
+
+
+
+
+
+
+
+
+server.cpp
+
+NRC(port,handle_request){
+	socket()
+	bind()// tells kernel that the server is running, setting up the mail box
+	listen(){
+		while(1){
+			ns=accept()
+			
+			// make a new thread
+				pthread_create(handle_request,ns);
+		}
+	}
+}
+
+
+
+
+handle request function
+void* handle_request(socket ns){
+	//read request
+	recv(ns,data);
+	//
+	if(data== "hello")
+	{
+		send("hello to you");
+	}
+	else if(data == "data John Doe"){
+	}
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
