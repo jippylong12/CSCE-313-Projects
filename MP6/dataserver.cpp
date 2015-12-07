@@ -192,7 +192,8 @@ void handle_process_loop(RequestChannel & _channel) {
 /*--------------------------------------------------------------------------*/
 
 int main(int argc, char * argv[]) {
-  
+  p = 1212;
+  b = 100;
 	while ((c = getopt (argc,argv,"p:b")) != -1)
 	{
 		switch(c)

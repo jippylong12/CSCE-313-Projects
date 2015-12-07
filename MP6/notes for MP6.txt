@@ -1,6 +1,6 @@
 Client.cpp
 main(){
-NetworkRC * nrc [w]
+NetworkRequestChannel * NRC [w]
 for i=1:W
 	nrc[i]=new netRC(Client);
 
@@ -100,7 +100,42 @@ void* handle_request(socket ns){
 
 
 
+//NOTES FROM MONDAY LAB
 
+//as long we don't exceed 80 sockets it should be fine
+
+main()
+{
+	NRC* rc = new RC(SERVER)
+	handle_requests()
+}
+
+NRC(port, backlog, function)
+{
+	socket
+	bind
+	listen
+	while()
+	{
+		newsocket=accept()
+		NRC* newRC = new NRC(new_socket)
+		pthread_create(function,new_socket)
+	}
+}
+
+NRC()
+{
+	cwrite()
+	{
+		write(socket, function?
+	}
+	cread()
+	{
+		read(socket,   )
+	}
+}
+
+//we don't have to worry about joining the server threads. 
 
 
 
