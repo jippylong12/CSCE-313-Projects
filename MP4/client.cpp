@@ -60,10 +60,7 @@ struct Histogram{ //class that holds the people's responses
 	void show_histogram(int i, ofstream& file);
 };
 
-<<<<<<< HEAD
 void Histogram:: show_histogram(int i, ofstream& file){ // frequency of numbers between 0 to 99
-=======
-void Histogram:: show_histogram(int i){ // frequency of numbers between 0 to 99
 	int count=0;
 	int tenth=0;
 	if(i==0){//john
@@ -87,8 +84,7 @@ void Histogram:: show_histogram(int i){ // frequency of numbers between 0 to 99
 				tenth=0;
 				cout<<i-9<<"-"<<i<<":"<<count<<endl;
 				count=0;
-			}
-			
+			}			
 		}
 	}
 	else if(i==1){//jane
