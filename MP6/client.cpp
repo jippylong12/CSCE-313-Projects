@@ -381,7 +381,7 @@ int main(int argc, char * argv[]) {
 	n=10000;
 	b=100;
 	w=10;
-	while ((c = getopt (argc,argv,"n:b:w:")) != -1)
+	while ((c = getopt (argc,argv,"n:b:w:h:p")) != -1)
 	{
 		switch(c)
 		{

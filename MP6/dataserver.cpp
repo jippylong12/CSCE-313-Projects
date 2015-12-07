@@ -192,6 +192,40 @@ void handle_process_loop(RequestChannel & _channel) {
 /*--------------------------------------------------------------------------*/
 
 int main(int argc, char * argv[]) {
+  
+	while ((c = getopt (argc,argv,"p:b")) != -1)
+	{
+		switch(c)
+		{
+		  case 'p': //port number of server host
+				p = atoi(optarg)
+				if(p == 0) 
+				{
+					p = 1212;
+				}
+				break;
+			case 'b': /// size of bounded buffer
+				b = atoi(optarg);
+				if(b == 0)
+				{
+					b = 100;
+				}
+				break;
+			case '?':
+				 if (optopt == 'c')
+					fprintf (stderr, "Option -%c requires an argument.\n", optopt);
+				else if (isprint (optopt))
+					fprintf (stderr, "Unknown option `-%c'.\n", optopt);
+				else
+					fprintf (stderr, "Unknown option character `\\x%x'.\n", optopt);
+				return 1;
+			default:
+				abort();
+				
+		}
+	}
+
+
 
   //  cout << "Establishing control channel... " << flush;
   RequestChannel control_channel("control", RequestChannel::SERVER_SIDE);
