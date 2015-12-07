@@ -6,13 +6,22 @@ using namespace std;
 
 NetworkRequestChannel::NetworkRequestChannel(const string _server_host_name, const unsigned short _port_no);
 {
-    
+    //these should be set up like the files they gave  us for the TDP
 }
 
 
-NetworkRequestChannel::NetworkRequestChannel(const unsigned short _port_no, backlog,  void * (*connection_handler) (int *))
+NetworkRequestChannel::NetworkRequestChannel(const unsigned short _port_no, int backlog,  void * (*connection_handler) (int *))
 {
-    
+    //these should be set up like the files they gave  us for the TDP
+    //socket
+    //bind
+    //listen
+    /*while()
+    {
+        newsocket = accept()
+        NetworkRequestChannel* new NRC(newsocket)
+        pthread_create(connection_handler,newRC)
+    }*/
 }
 
 NetworkRequestChannel::~NetworkRequestChannel()

@@ -436,146 +436,140 @@ int main(int argc, char * argv[]) {
 	double start, end;
 	start = my_clock();
 	// start=clock(); // start the clock
-    pid_t pid = fork();
-    //if child process
-    //we need to start up the data server
-    if(pid == 0) 
-    {
-        execvp("./dataserver",argv);
-    }
-	else
+	
+	vector<NetworkRequestChannel*> NRC(w) //create an array of network request channeLs
+	for i=1:w
 	{
-		
-		int size=b;
-		request_buffer= BB(size);
-		for(int i=0;i<3;i++)
-			response_buffer[i]= BB(size/3);
-		
-		
-		
-		cout << "CLIENT STARTED:" << endl;
+		NRC[i]=new NetworkRequestChannel(CLIENT); //what is client?
+	}
+	
+	
+	int size=b;
+	request_buffer= BB(size);
+	for(int i=0;i<3;i++)
+		response_buffer[i]= BB(size/3);
+	
+	
+	
+	cout << "CLIENT STARTED:" << endl;
 
-		cout << "Establishing control channel... " << flush;
-		RequestChannel chan("control", RequestChannel::CLIENT_SIDE);
-		cout << "done." << endl;
-		
-		pthread_t requestid[3];
-		pthread_t eventHandlerid;
-		pthread_t responseid[3];
-		
-		/* -- Start sending a sequence of requests */
-		for (int i=0; i<3;i++)
-		{
-			pthread_create (&requestid[i],0, RT, new int(i)); // create three request threads
-			
-		}
-		// create the new Request channels
-		for(int i=0;i<w;i++)
-		{
-			string channel_name=chan.send_request("newthread");
-			RC.push_back(new RequestChannel(channel_name,RequestChannel::CLIENT_SIDE)); //creates all the channels for the worker threads
-		}
-		
-		//create the thread for the eventHandler
-		pthread_create(&eventHandlerid,0,EHT,0); //Austin not sure if this is correct format 
-		
-		//response_buffer[0].isempty();
-	 	 for (int i=0; i<3;i++)
-		{
-			pthread_create (&responseid[i],0, ST,new int(i)); // create 3 stat threads
-		} 
-		
-		for(int i=0; i<3 ; i++)
-		{
-			pthread_join(requestid[i],NULL);
-		}
-		pthread_join(eventHandlerid,NULL);
-		//request_buffer.push("#"); //tells when to stop worker threads
-		for(int i=0; i<3 ; i++)
-		{
-			pthread_join(responseid[i],NULL);
-		}
-		
-		//joining the event handler thread **The EH thread does not exit currently**
-		
-		
-		
-		//end=clock(); // end the clock
-		end = my_clock();
-		cout<<"N"<<n<<endl;
-		cout<<"B"<<b<<endl;
-		cout<<"W"<<w<<endl;
-		for(int i=0;i<RC.size();i++){
-			RC[i]->send_request("quit");
-			delete RC[i];
-		}
-		string reply4 = chan.send_request("quit");
-		cout << "Reply to request 'quit' is '" << reply4 << "'" << endl;
-		
-		usleep(1000000);
-		
-		//double time=((double)(end-start))/CLOCKS_PER_SEC;
-		double time = end-start;
-		cout<<"\n \n \n The perfomance time took " << time<<" seconds."<<endl;
-		cout<<"Creating data files for histogram"<<endl; //start outputting data to files
-		//create streams
-		ofstream joeData;
-		ofstream janeData;
-		ofstream johnData;
-		//open files for writing
-		joeData.open("joeData.txt");
-		janeData.open("janeData.txt");
-		johnData.open("johnData.txt");
-		
-		cout<<"JOE's:"<<data.joe.size()<<endl;
-		data.show_histogram(2,joeData);
-		/* for(int a:data.joe)
-			cout<<a<<endl; */
-		cout<<"JANE's:"<<data.jane.size()<<endl;
-		data.show_histogram(1,janeData);
-		/* for(int a:data.jane)
-			cout<<a<<endl; */
-		cout<<"JOHN's:"<<data.john.size()<<endl;
-		data.show_histogram(0,johnData);
-		/* for(int a:data.john)
-			cout<<a<<endl; */
-		
-		//close files. 
-		joeData.close();
-		janeData.close();
-		johnData.close();
-
-		// string reply4 = chan.send_request("quit");
-		// cout << "Reply to request 'quit' is '" << reply4 << "'" << endl;
-		
-		// usleep(1000000);
-		// double time=((double)(end-start))/CLOCKS_PER_SEC;
-		// cout<<" The perfomance time took " << time<<" seconds."<<endl;
-		// cout<<"Creating data files for histogram"<<endl; //start outputting data to files
-		
-
-		
-		// //put stuff in those files. 
-		
-		// for(int i = 0; i<n; ++i)
-		// {
-			// joeData<<data.joe[i]<<'\n';
-		// }
-		// for(int i = 0; i<n; ++i)
-		// {
-			// janeData<<data.jane[i]<<'\n';
-// =======
-		// double time=(double)(end-start)/CLOCKS_PER_SEC;
-		// cout<<" The perfomance time took " << time<<endl;
-// >>>>>>> 4fa16a77620719b287ac48c2cdd1fe36497317b7
-		// }
-		// for(int i = 0; i<n; ++i)
-		// {
-			// johnData<<data.john[i]<<'\n';
-		// }
-		
-
+	cout << "Establishing control channel... " << flush;
+	RequestChannel chan("control", RequestChannel::CLIENT_SIDE);
+	cout << "done." << endl;
+	
+	pthread_t requestid[3];
+	pthread_t eventHandlerid;
+	pthread_t responseid[3];
+	
+	/* -- Start sending a sequence of requests */
+	for (int i=0; i<3;i++)
+	{
+		pthread_create (&requestid[i],0, RT, new int(i)); // create three request threads
 		
 	}
+	// create the new Request channels
+	for(int i=0;i<w;i++)
+	{
+		string channel_name=chan.send_request("newthread");
+		RC.push_back(new RequestChannel(channel_name,RequestChannel::CLIENT_SIDE)); //creates all the channels for the worker threads
+	}
+	
+	//create the thread for the eventHandler
+	pthread_create(&eventHandlerid,0,EHT,0); //Austin not sure if this is correct format 
+	
+	//response_buffer[0].isempty();
+ 	 for (int i=0; i<3;i++)
+	{
+		pthread_create (&responseid[i],0, ST,new int(i)); // create 3 stat threads
+	} 
+	
+	for(int i=0; i<3 ; i++)
+	{
+		pthread_join(requestid[i],NULL);
+	}
+	pthread_join(eventHandlerid,NULL);
+	//request_buffer.push("#"); //tells when to stop worker threads
+	for(int i=0; i<3 ; i++)
+	{
+		pthread_join(responseid[i],NULL);
+	}
+	
+	//joining the event handler thread **The EH thread does not exit currently**
+	
+	
+	
+	//end=clock(); // end the clock
+	end = my_clock();
+	cout<<"N"<<n<<endl;
+	cout<<"B"<<b<<endl;
+	cout<<"W"<<w<<endl;
+	for(int i=0;i<RC.size();i++){
+		RC[i]->send_request("quit");
+		delete RC[i];
+	}
+	string reply4 = chan.send_request("quit");
+	cout << "Reply to request 'quit' is '" << reply4 << "'" << endl;
+	
+	usleep(1000000);
+	
+	//double time=((double)(end-start))/CLOCKS_PER_SEC;
+	double time = end-start;
+	cout<<"\n \n \n The perfomance time took " << time<<" seconds."<<endl;
+	cout<<"Creating data files for histogram"<<endl; //start outputting data to files
+	//create streams
+	ofstream joeData;
+	ofstream janeData;
+	ofstream johnData;
+	//open files for writing
+	joeData.open("joeData.txt");
+	janeData.open("janeData.txt");
+	johnData.open("johnData.txt");
+	
+	cout<<"JOE's:"<<data.joe.size()<<endl;
+	data.show_histogram(2,joeData);
+	/* for(int a:data.joe)
+		cout<<a<<endl; */
+	cout<<"JANE's:"<<data.jane.size()<<endl;
+	data.show_histogram(1,janeData);
+	/* for(int a:data.jane)
+		cout<<a<<endl; */
+	cout<<"JOHN's:"<<data.john.size()<<endl;
+	data.show_histogram(0,johnData);
+	/* for(int a:data.john)
+		cout<<a<<endl; */
+	
+	//close files. 
+	joeData.close();
+	janeData.close();
+	johnData.close();
+
+	// string reply4 = chan.send_request("quit");
+	// cout << "Reply to request 'quit' is '" << reply4 << "'" << endl;
+	
+	// usleep(1000000);
+	// double time=((double)(end-start))/CLOCKS_PER_SEC;
+	// cout<<" The perfomance time took " << time<<" seconds."<<endl;
+	// cout<<"Creating data files for histogram"<<endl; //start outputting data to files
+	
+
+	
+	// //put stuff in those files. 
+	
+	// for(int i = 0; i<n; ++i)
+	// {
+		// joeData<<data.joe[i]<<'\n';
+	// }
+	// for(int i = 0; i<n; ++i)
+	// {
+		// janeData<<data.jane[i]<<'\n';
+// =======
+	// double time=(double)(end-start)/CLOCKS_PER_SEC;
+	// cout<<" The perfomance time took " << time<<endl;
+// >>>>>>> 4fa16a77620719b287ac48c2cdd1fe36497317b7
+	// }
+	// for(int i = 0; i<n; ++i)
+	// {
+		// johnData<<data.john[i]<<'\n';
+	// }
 		
 }

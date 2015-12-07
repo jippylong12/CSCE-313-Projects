@@ -187,6 +187,14 @@ void handle_process_loop(RequestChannel & _channel) {
   
 }
 
+//we need to pass this as an argument. 
+void* howToHandleReq()
+{
+  handle_process_loop(control_channel);
+}
+
+
+
 /*--------------------------------------------------------------------------*/
 /* MAIN FUNCTION */
 /*--------------------------------------------------------------------------*/
@@ -229,9 +237,10 @@ int main(int argc, char * argv[]) {
 
 
   //  cout << "Establishing control channel... " << flush;
-  RequestChannel control_channel("control", RequestChannel::SERVER_SIDE);
+  //this format may be incorrect
+  NetworkRequestChannel* rc = new NetworkRequestChannel(1212,0, howToHandleReq())
   //  cout << "done.\n" << flush;
 
-  handle_process_loop(control_channel);
+  
 
 }
