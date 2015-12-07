@@ -385,25 +385,38 @@ int main(int argc, char * argv[]) {
 	{
 		switch(c)
 		{
-			case 'n':
+			case 'n': //number of data requests per person
 				n = atoi(optarg);
 				if( n == 0)
 				{
 					n = 1000;
 				}
 				break;
-			case 'b':
+			case 'b': /// size of bounded buffer
 				b = atoi(optarg);
 				if(b == 0)
 				{
 					b = 100;
 				}
 				break;
-			case 'w':
+			case 'w': //number of request channels
 				w = atoi(optarg);
 				if(w == 0)
 				{
 					w = 10;
+				}
+				break;
+			case 'h': //name of server host
+				if(h == '') // we don't need atoi since it is a string
+				{
+					h = "testhost";
+				}
+				break;
+			case 'p': //port number of server host
+				p = atoi(optarg)
+				if(p == 0) 
+				{
+					p = 1212;
 				}
 				break;
 			case '?':
