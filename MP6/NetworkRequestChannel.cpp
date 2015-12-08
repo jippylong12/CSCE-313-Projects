@@ -4,13 +4,13 @@
 
 using namespace std;
 
-NetworkRequestChannel::NetworkRequestChannel(const string _server_host_name, const unsigned short _port_no);
+NetworkRequestChannel::NetworkRequestChannel(const string _server_host_name, const unsigned short _port_no); //client
 {
     //these should be set up like the files they gave  us for the TDP
 }
 
 
-NetworkRequestChannel::NetworkRequestChannel(const unsigned short _port_no, int backlog,  void * (*connection_handler) (int *))
+NetworkRequestChannel::NetworkRequestChannel(const unsigned short _port_no, int backlog,  void * (*connection_handler) (int *)) //server
 {
     //these should be set up like the files they gave  us for the TDP
     //socket
