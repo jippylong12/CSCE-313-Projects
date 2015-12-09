@@ -1,12 +1,26 @@
+#include <string>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+using namespace std;
+
 class NetworkRequestChannel
 {
+	private: 
+	
+	int fd;
+	int  message_buffer_size= 255;
     public:
     
     NetworkRequestChannel(const string _server_host_name, const unsigned short _port_no); 
     /* Creates a CLIENT-SIDE local copy of the channel. The channel is connected to 
     the given port number at the given server host.
     THIS CONSTRUCTOR IS CALLED BY THE CLIENT. */ 
-    NetworkRequestChannel(const unsigned short _port_no, backlog,  void * (*connection_handler) (int *)); 
+    NetworkRequestChannel(const unsigned short _port_no, int backlog,  void * (*connection_handler) (void *)); 
     /* Creates a SERVER-SIDE local copy of the channel that is accepting connections 
     at the given port number. NOTE that multiple clients can be connected to the 
     same server-side end of the request channel. Whenever a new connection comes in
@@ -25,7 +39,7 @@ class NetworkRequestChannel
     int cwrite(string _msg); 
     /* Write the data to the channel. The function returns the number of characters 
     written to the channel. */
-    
+    int read_fd();
     //Backlog is when there are multiple clients trying to connect at the same time.
     //While one is being used, if the backlog is zero all connections will be 
     //dropped. If it is not then they will queued. Backlog should not have much 

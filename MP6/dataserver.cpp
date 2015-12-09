@@ -32,6 +32,7 @@
 #include <stdlib.h>
 
 #include "reqchannel.h"
+#include "NetworkRequestChannel.h"
 
 using namespace std;
 
@@ -57,7 +58,7 @@ static int nthreads = 0;
 /* FORWARDS */
 /*--------------------------------------------------------------------------*/
 
-void handle_process_loop(RequestChannel & _channel);
+void* handle_process_loop(RequestChannel & _channel);
 
 /*--------------------------------------------------------------------------*/
 /* LOCAL FUNCTIONS -- SUPPORT FUNCTIONS */
@@ -167,7 +168,7 @@ void process_request(RequestChannel & _channel, const string & _request) {
 
 }
 
-void handle_process_loop(RequestChannel & _channel) {
+void* handle_process_loop(RequestChannel & _channel) {
 
   for(;;) {
 
@@ -188,26 +189,71 @@ void handle_process_loop(RequestChannel & _channel) {
 }
 
 //we need to pass this as an argument. 
-void* howToHandleReq()
-{
-  handle_process_loop(control_channel);
-}
+const int  message_buffer_size= 255;
+void* handle_request(void* ns){
+	//read request
+	int* fd= (int*)ns;
+	char buf[message_buffer_size];
+	for(;;) {
 
+	//read request
+		
+
+   if(read(*fd,&buf,message_buffer_size)<0)
+	   cerr<<"error reading";
+   string request=buf;
+	if (request.compare(0, 5, "hello") == 0) {
+		string msg="hello to you too";
+		const char * s = msg.c_str();
+		write(*fd, s,strlen(s)+1);
+	}
+	else if (request.compare(0, 14, "data Joe Smith") == 0) {
+		usleep(1000 + (rand() % 5000));
+		string msg=int2string(rand() % 100);
+		const char * s = msg.c_str();
+		write(*fd, s,strlen(s)+1);
+	}
+	else if (request.compare(0, 15, "data Jane Smith") == 0) {
+		usleep(1000 + (rand() % 5000));
+		string msg=int2string(rand() % 100);
+		const char * s = msg.c_str();
+		write(*fd, s,strlen(s)+1);
+	}
+	else if (request.compare(0, 13, "data John Doe") == 0) {
+		usleep(1000 + (rand() % 5000));
+		string msg=int2string(rand() % 100);
+		const char * s = msg.c_str();
+		write(*fd, s,strlen(s)+1);
+	}
+	else if(request.compare("quit") == 0){
+		
+		string msg="bye";
+		const char * s = msg.c_str();
+		write(*fd, s,strlen(s)+1);
+	}
+	else {
+		string msg="unknow request";
+		const char * s = msg.c_str();
+		write(*fd, s,strlen(s)+1);
+	}
+  }
+
+}
 
 
 /*--------------------------------------------------------------------------*/
 /* MAIN FUNCTION */
 /*--------------------------------------------------------------------------*/
-
+int p,b,c;
 int main(int argc, char * argv[]) {
-  p = 1212;
+  p = 1515;
   b = 100;
 	while ((c = getopt (argc,argv,"p:b")) != -1)
 	{
 		switch(c)
 		{
 		  case 'p': //port number of server host
-				p = atoi(optarg)
+				p = atoi(optarg);
 				if(p == 0) 
 				{
 					p = 1212;
@@ -238,7 +284,7 @@ int main(int argc, char * argv[]) {
 
   //  cout << "Establishing control channel... " << flush;
   //this format may be incorrect
-  NetworkRequestChannel* rc = new NetworkRequestChannel(1212,0, howToHandleReq())
+  NetworkRequestChannel* rc = new NetworkRequestChannel(p,0, handle_request);
   //  cout << "done.\n" << flush;
 
   

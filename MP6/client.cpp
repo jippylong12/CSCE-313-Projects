@@ -29,6 +29,7 @@
 #include <ctime>
 
 #include "reqchannel.h"
+#include "NetworkRequestChannel.h"
 #include "boundedbuffer.h"
 
 using namespace std;
@@ -55,9 +56,10 @@ using namespace std;
 /* MAIN FUNCTION */
 /*--------------------------------------------------------------------------*/
 
-
+int n,b,w,p;
+string h;
 //we need an array of request channel pointers in order for us to construct it in the main. 
-vector<RequestChannel*> RC; //the size is determined by the input w of the program and done in the main
+vector<NetworkRequestChannel*> NRC; //the size is determined by the input w of the program and done in the main
 
 
 //boundary buffer for the request threads
@@ -201,7 +203,7 @@ void Histogram:: show_histogram(int i, ofstream& file){ // frequency of numbers 
 		}
 	}
 }
-int n,b,w;
+
 Histogram data=Histogram();
 void* RT(void* arg){ //request thread
 	int person=*(int *)arg;
@@ -241,39 +243,44 @@ void* EHT(void* arg)//event handler thread
 	response_input.resize(w);
 	int num_responses=0;
 	
+	FD_ZERO(&s); // zero out the set
 	while(num_responses<(n*3))
 	{
+		cerr<<"in EHT";
 		s = sBackup; //restore the backup
 		int counterForThreads = 0; //knowing when to exit last for loop
 		//we need to fill out the set everytime since select destroys it
-		//FD_ZERO(&s); // zero out the set
+		
 		for(int i = 0; i<w-1;++i) //fill the set and send the requests
 		{
-			if(FD_ISSET(RC[i]->read_fd(),&s) != 1) //if the file descriptor is not in the set already
+			cerr<<"in EHT1";
+			if(FD_ISSET(NRC[i]->read_fd(),&s) != 1) //if the file descriptor is not in the set already
 			{	
-				FD_SET(RC[i]-> read_fd(),&s); //fill set with each request channel file descriptor
-				if(RC[i] -> read_fd() > maxfd) //if the file descriptor we are at is bigger than the max
+				cerr<<"in EHT2";
+				FD_SET(NRC[i]-> read_fd(),&s); //fill set with each request channel file descriptor
+				if(NRC[i] -> read_fd() > maxfd) //if the file descriptor we are at is bigger than the max
 				{
-					maxfd = RC[i]->read_fd(); // make it the new max
-					
+					maxfd = NRC[i]->read_fd(); // make it the new max
+					cerr<<"in EHT3";
 				}
 			if(request_buffer.size() < 1) continue; // we should go to the next iteration if we have nothing in the buffer
 			string send_request=request_buffer.pop();
-			RC[i] -> cwrite(send_request); //give the request channel something to send to the server
+			NRC[i] -> cwrite(send_request); //give the request channel something to send to the server
 			response_input[i]=send_request;
 			// keep count of response plus the connection request
 			}
 			
 		}
-		
+		cerr<<"in EHT4";
 		sBackup = s; // back up the set
 		//then we will periodically check to see if a thread is done and then read that. 
 		int k = 0; //how many threads are ready to be checked. 
 		while(k == 0) //while none of the threads are ready. 
 		{
-
+			cerr<<"in EHT5";
 			k=select(maxfd+1,&s,NULL,NULL,NULL); //check to see if there is a thread ready
 			//Once it breaks the set is destroyed except for the ready threads
+			cerr<<"in EHT66";
 
 		}
 
@@ -281,14 +288,15 @@ void* EHT(void* arg)//event handler thread
 		//to get the response. 
 		for(int i=0; i<w; i++) //check through each request channel
 		{
+			cerr<<"in EHT6";
 			if(counterForThreads == k) break; // we have found all the threads possible so there is no need to keep searching
-			if(FD_ISSET(RC[i]->read_fd(),&s)) //if we find the file descriptor in this request channel in the set
+			if(FD_ISSET(NRC[i]->read_fd(),&s)) //if we find the file descriptor in this request channel in the set
 			{
 				++counterForThreads; //increase the count that is keeping track of how many we have worked on
-				string returnString = RC[i]-> cread(); // get the processed data 
+				string returnString = NRC[i]-> cread(); // get the processed data 
 				num_responses++;
 				//git cout<<num_responses<<endl;
-				FD_CLR(RC[i]->read_fd(),&sBackup); //remove the file descriptor from the set because we used it
+				FD_CLR(NRC[i]->read_fd(),&sBackup); //remove the file descriptor from the set because we used it
 				//This where we put returnString into a response buffer **need a way to know which response buffer to put it in. **
 				
 				if(response_input[i].compare(stringJoe) == 0)
@@ -369,18 +377,20 @@ double my_clock(void) {
 }
 
 int main(int argc, char * argv[]) {
-	struct sigaction periodic_histogram;
+	/* struct sigaction periodic_histogram;
 	periodic_histogram.sa_handler=catch_alarm;
 	periodic_histogram.sa_flags=SA_RESTART; // deals with EINTR errors
 	struct itimerval timer={0};
 	timer.it_value.tv_sec=1;
 	timer.it_interval.tv_sec=1;
 	sigaction(SIGALRM,&periodic_histogram,NULL);
-	setitimer(ITIMER_REAL,&timer,NULL);
+	setitimer(ITIMER_REAL,&timer,NULL); */
 	int c;
-	n=10000;
+	n=100;
 	b=100;
 	w=10;
+	h = "linux2";
+	p = 1515;
 	while ((c = getopt (argc,argv,"n:b:w:h:p")) != -1)
 	{
 		switch(c)
@@ -407,13 +417,13 @@ int main(int argc, char * argv[]) {
 				}
 				break;
 			case 'h': //name of server host
-				if(h == '') // we don't need atoi since it is a string
+				if(h == "") // we don't need atoi since it is a string
 				{
-					h = "testhost";
+					h = "linux2";
 				}
 				break;
 			case 'p': //port number of server host
-				p = atoi(optarg)
+				p = atoi(optarg);
 				if(p == 0) 
 				{
 					p = 1212;
@@ -433,15 +443,11 @@ int main(int argc, char * argv[]) {
 		}
 	}
 	// clock_t start,end;
-	double start, end;
+	 double start, end;
 	start = my_clock();
 	// start=clock(); // start the clock
 	
-	vector<NetworkRequestChannel*> NRC(w) //create an array of network request channeLs
-	for i=1:w
-	{
-		NRC[i]=new NetworkRequestChannel(CLIENT); //what is client?
-	}
+	
 	
 	
 	int size=b;
@@ -450,32 +456,30 @@ int main(int argc, char * argv[]) {
 		response_buffer[i]= BB(size/3);
 	
 	
-	
 	cout << "CLIENT STARTED:" << endl;
 
 	cout << "Establishing control channel... " << flush;
-	RequestChannel chan("control", RequestChannel::CLIENT_SIDE);
-	cout << "done." << endl;
+	
 	
 	pthread_t requestid[3];
 	pthread_t eventHandlerid;
 	pthread_t responseid[3];
 	
-	/* -- Start sending a sequence of requests */
+	// Start sending a sequence of requests
 	for (int i=0; i<3;i++)
 	{
 		pthread_create (&requestid[i],0, RT, new int(i)); // create three request threads
 		
 	}
-	// create the new Request channels
+	
+	// create the new Network Request channels
 	for(int i=0;i<w;i++)
 	{
-		string channel_name=chan.send_request("newthread");
-		RC.push_back(new RequestChannel(channel_name,RequestChannel::CLIENT_SIDE)); //creates all the channels for the worker threads
+		NRC.push_back(new NetworkRequestChannel(h,p)); //client
 	}
 	
 	//create the thread for the eventHandler
-	pthread_create(&eventHandlerid,0,EHT,0); //Austin not sure if this is correct format 
+	pthread_create(&eventHandlerid,0,EHT,0);
 	
 	//response_buffer[0].isempty();
  	 for (int i=0; i<3;i++)
@@ -503,12 +507,12 @@ int main(int argc, char * argv[]) {
 	cout<<"N"<<n<<endl;
 	cout<<"B"<<b<<endl;
 	cout<<"W"<<w<<endl;
-	for(int i=0;i<RC.size();i++){
-		RC[i]->send_request("quit");
-		delete RC[i];
+	for(int i=0;i<NRC.size();i++){
+		NRC[i]->send_request("quit");
+		delete NRC[i];
 	}
-	string reply4 = chan.send_request("quit");
-	cout << "Reply to request 'quit' is '" << reply4 << "'" << endl;
+	/* string reply4 = chan.send_request("quit");
+	cout << "Reply to request 'quit' is '" << reply4 << "'" << endl; */
 	
 	usleep(1000000);
 	
@@ -520,6 +524,7 @@ int main(int argc, char * argv[]) {
 	ofstream joeData;
 	ofstream janeData;
 	ofstream johnData;
+	/*
 	//open files for writing
 	joeData.open("joeData.txt");
 	janeData.open("janeData.txt");
@@ -527,49 +532,21 @@ int main(int argc, char * argv[]) {
 	
 	cout<<"JOE's:"<<data.joe.size()<<endl;
 	data.show_histogram(2,joeData);
-	/* for(int a:data.joe)
-		cout<<a<<endl; */
+	for(int a:data.joe)
+		cout<<a<<endl;
 	cout<<"JANE's:"<<data.jane.size()<<endl;
 	data.show_histogram(1,janeData);
-	/* for(int a:data.jane)
-		cout<<a<<endl; */
+	for(int a:data.jane)
+		cout<<a<<endl;
 	cout<<"JOHN's:"<<data.john.size()<<endl;
 	data.show_histogram(0,johnData);
-	/* for(int a:data.john)
-		cout<<a<<endl; */
+	for(int a:data.john)
+		cout<<a<<endl;
 	
 	//close files. 
 	joeData.close();
 	janeData.close();
-	johnData.close();
+	johnData.close(); */
 
-	// string reply4 = chan.send_request("quit");
-	// cout << "Reply to request 'quit' is '" << reply4 << "'" << endl;
-	
-	// usleep(1000000);
-	// double time=((double)(end-start))/CLOCKS_PER_SEC;
-	// cout<<" The perfomance time took " << time<<" seconds."<<endl;
-	// cout<<"Creating data files for histogram"<<endl; //start outputting data to files
-	
-
-	
-	// //put stuff in those files. 
-	
-	// for(int i = 0; i<n; ++i)
-	// {
-		// joeData<<data.joe[i]<<'\n';
-	// }
-	// for(int i = 0; i<n; ++i)
-	// {
-		// janeData<<data.jane[i]<<'\n';
-// =======
-	// double time=(double)(end-start)/CLOCKS_PER_SEC;
-	// cout<<" The perfomance time took " << time<<endl;
-// >>>>>>> 4fa16a77620719b287ac48c2cdd1fe36497317b7
-	// }
-	// for(int i = 0; i<n; ++i)
-	// {
-		// johnData<<data.john[i]<<'\n';
-	// }
 		
 }
