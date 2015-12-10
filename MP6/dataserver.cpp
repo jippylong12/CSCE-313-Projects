@@ -193,48 +193,51 @@ const int  message_buffer_size= 255;
 void* handle_request(void* ns){
 	//read request
 	int* fd= (int*)ns;
+	cerr<<"fd:"<<*fd;
 	char buf[message_buffer_size];
 	for(;;) {
 
 	//read request
 		
 
-   if(read(*fd,&buf,message_buffer_size)<0)
-	   cerr<<"error reading";
-   string request=buf;
-	if (request.compare(0, 5, "hello") == 0) {
-		string msg="hello to you too";
-		const char * s = msg.c_str();
-		write(*fd, s,strlen(s)+1);
-	}
-	else if (request.compare(0, 14, "data Joe Smith") == 0) {
-		usleep(1000 + (rand() % 5000));
-		string msg=int2string(rand() % 100);
-		const char * s = msg.c_str();
-		write(*fd, s,strlen(s)+1);
-	}
-	else if (request.compare(0, 15, "data Jane Smith") == 0) {
-		usleep(1000 + (rand() % 5000));
-		string msg=int2string(rand() % 100);
-		const char * s = msg.c_str();
-		write(*fd, s,strlen(s)+1);
-	}
-	else if (request.compare(0, 13, "data John Doe") == 0) {
-		usleep(1000 + (rand() % 5000));
-		string msg=int2string(rand() % 100);
-		const char * s = msg.c_str();
-		write(*fd, s,strlen(s)+1);
-	}
-	else if(request.compare("quit") == 0){
-		
-		string msg="bye";
-		const char * s = msg.c_str();
-		write(*fd, s,strlen(s)+1);
-	}
-	else {
-		string msg="unknow request";
-		const char * s = msg.c_str();
-		write(*fd, s,strlen(s)+1);
+    if(read(*fd,buf,message_buffer_size)<0)
+	    cerr<<"error reading";
+	else{
+		string request=buf;
+		if (request.compare(0, 5, "hello") == 0) {
+			string msg="hello to you too";
+			const char * s = msg.c_str();
+			write(*fd, s,strlen(s)+1);
+		}
+		else if (request.compare(0, 14, "data Joe Smith") == 0) {
+			usleep(1000 + (rand() % 5000));
+			string msg=int2string(rand() % 100);
+			const char * s = msg.c_str();
+			write(*fd, s,strlen(s)+1);
+		}
+		else if (request.compare(0, 15, "data Jane Smith") == 0) {
+			usleep(1000 + (rand() % 5000));
+			string msg=int2string(rand() % 100);
+			const char * s = msg.c_str();
+			write(*fd, s,strlen(s)+1);
+		}
+		else if (request.compare(0, 13, "data John Doe") == 0) {
+			usleep(1000 + (rand() % 5000));
+			string msg=int2string(rand() % 100);
+			const char * s = msg.c_str();
+			write(*fd, s,strlen(s)+1);
+		}
+		else if(request.compare("quit") == 0){
+			
+			string msg="bye";
+			const char * s = msg.c_str();
+			write(*fd, s,strlen(s)+1);
+		}
+		else {
+			string msg="unknow request";
+			const char * s = msg.c_str();
+			write(*fd, s,strlen(s)+1);
+		}
 	}
   }
 
@@ -246,8 +249,8 @@ void* handle_request(void* ns){
 /*--------------------------------------------------------------------------*/
 int p,b,c;
 int main(int argc, char * argv[]) {
-  p = 1515;
-  b = 100;
+  p = 6002;
+  b = 0;
 	while ((c = getopt (argc,argv,"p:b")) != -1)
 	{
 		switch(c)
@@ -284,7 +287,7 @@ int main(int argc, char * argv[]) {
 
   //  cout << "Establishing control channel... " << flush;
   //this format may be incorrect
-  NetworkRequestChannel* rc = new NetworkRequestChannel(p,0, handle_request);
+  NetworkRequestChannel* rc = new NetworkRequestChannel(p,b, handle_request);
   //  cout << "done.\n" << flush;
 
   

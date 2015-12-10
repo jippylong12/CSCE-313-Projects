@@ -14,14 +14,16 @@ NetworkRequestChannel::NetworkRequestChannel(const string _server_host_name, con
 	stringstream ss;
 	ss << _port_no;
 	const char* port_num= (ss.str()).c_str();
+	cerr<<_port_no;
 	// first, load up address structs with getaddrinfo():
-
 	memset(&hints, 0, sizeof hints);
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	int status;
 	//getaddrinfo("www.example.com", "3490", &hints, &res);
-	if ((status = getaddrinfo(socket_name, port_num, &hints, &res)) != 0) {
+	//if ((status = getaddrinfo(socket_name, port_num, &hints, &res)) != 0) {
+	if ((status = getaddrinfo(_server_host_name.c_str(), to_string(_port_no).c_str(), &hints, &res)) != 0) {	
+		
         fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(status));
         //return -1;
 		exit(1);
@@ -57,6 +59,7 @@ NetworkRequestChannel::NetworkRequestChannel(const string _server_host_name, con
 	read (sockfd, buf, message_buffer_size);
 	printf ("Received %s from the server\n", buf); */
 	}
+	freeaddrinfo(res); // all done with this structure
 }
 
 
@@ -105,13 +108,9 @@ NetworkRequestChannel::NetworkRequestChannel(const unsigned short _port_no, int 
         sin_size = sizeof their_addr;
 		int fds;
         fds = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
-		*new_fd= fds;
-		if(fds>0){
-		cerr<<fds;
-		cerr<<*new_fd;
-		}
-        if (*new_fd <0)
+        if (fds <0){
             cerr<<("accept");
+		}
 		else{
 			/* char buf[message_buffer_size];
 			
@@ -122,11 +121,8 @@ NetworkRequestChannel::NetworkRequestChannel(const unsigned short _port_no, int 
 			const char * s = msg.c_str();
 			write(*new_fd, s,strlen(s)+1);
 			cerr<<("writing");  */
-			pthread_create (&server,0, connection_handler, new_fd);
+			pthread_create (&server,0, connection_handler, (void*)&fds);
 		}
-			
-			/* delete new_fd;
-			new_fd=new int(); */
     }
 }
 

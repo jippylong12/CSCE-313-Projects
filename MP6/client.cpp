@@ -243,52 +243,80 @@ void* EHT(void* arg)//event handler thread
 	response_input.resize(w);
 	int num_responses=0;
 	
-	FD_ZERO(&s); // zero out the set
+	FD_ZERO (&s);
+	
+	int sent = 0;
+	
+	for(int i = 0; i<w;++i) //fill the set and send the requests
+	{
+		
+		FD_SET(NRC[i]-> read_fd(),&s); //fill set with each request channel file descriptor
+		if(NRC[i] -> read_fd() > maxfd) //if the file descriptor we are at is bigger than the max
+		{
+			maxfd = NRC[i]->read_fd(); // make it the new max
+			
+		}
+		string send_request=request_buffer.pop();
+		NRC[i] -> cwrite(send_request); //give the request channel something to send to the server
+		response_input[i]=send_request;
+		sent ++;
+	}
+	sBackup = s;
+
+	
+	//FD_ZERO(&s); // zero out the set
 	while(num_responses<(n*3))
 	{
-		cerr<<"in EHT";
+		cerr<<num_responses<<endl;
 		s = sBackup; //restore the backup
 		int counterForThreads = 0; //knowing when to exit last for loop
 		//we need to fill out the set everytime since select destroys it
 		
-		for(int i = 0; i<w-1;++i) //fill the set and send the requests
-		{
-			cerr<<"in EHT1";
-			if(FD_ISSET(NRC[i]->read_fd(),&s) != 1) //if the file descriptor is not in the set already
-			{	
-				cerr<<"in EHT2";
-				FD_SET(NRC[i]-> read_fd(),&s); //fill set with each request channel file descriptor
-				if(NRC[i] -> read_fd() > maxfd) //if the file descriptor we are at is bigger than the max
-				{
-					maxfd = NRC[i]->read_fd(); // make it the new max
-					cerr<<"in EHT3";
-				}
-			if(request_buffer.size() < 1) continue; // we should go to the next iteration if we have nothing in the buffer
-			string send_request=request_buffer.pop();
-			NRC[i] -> cwrite(send_request); //give the request channel something to send to the server
-			response_input[i]=send_request;
-			// keep count of response plus the connection request
-			}
+		int k = select(maxfd+1,&s,NULL,NULL,NULL); //check to see if there is a thread ready
+		
+		// for(int i = 0; i<w;++i) //fill the set and send the requests
+		// {
 			
-		}
-		cerr<<"in EHT4";
-		sBackup = s; // back up the set
+			// if(FD_ISSET(NRC[i]->read_fd(),&s) != 1) //if the file descriptor is not in the set already
+			// {	
+				
+				// FD_SET(NRC[i]-> read_fd(),&s); //fill set with each request channel file descriptor
+				// if(NRC[i] -> read_fd() > maxfd) //if the file descriptor we are at is bigger than the max
+				// {
+					// maxfd = NRC[i]->read_fd(); // make it the new max
+					
+				// }
+			// //if(request_buffer.size() < 1) continue; // we should go to the next iteration if we have nothing in the buffer
+			// string send_request=request_buffer.pop();
+			// NRC[i] -> cwrite(send_request); //give the request channel something to send to the server
+			// response_input[i]=send_request;
+			// // keep count of response plus the connection request
+			// }
+			
+		// }
+		// sBackup = s; // back up the set
 		//then we will periodically check to see if a thread is done and then read that. 
-		int k = 0; //how many threads are ready to be checked. 
-		while(k == 0) //while none of the threads are ready. 
-		{
-			cerr<<"in EHT5";
-			k=select(maxfd+1,&s,NULL,NULL,NULL); //check to see if there is a thread ready
-			//Once it breaks the set is destroyed except for the ready threads
-			cerr<<"in EHT66";
+		
+		// while(k == 0) //while none of the threads are ready. 
+		// {
+			// cout<<"set:"<<endl;
+			// for(int i=0; i<w; i++){
+				// if(FD_ISSET(NRC[i]->read_fd(),&s))
+					// cout<<NRC[i]->read_fd()<<",";
+			// }
+			// cout<<endl;
+			// cout<<"print stuff first"<<endl;
+			// k=select(maxfd+1,&s,NULL,NULL,NULL); //check to see if there is a thread ready
+			// cout<<"print stuff k = "<<k << endl;
+			// //Once it breaks the set is destroyed except for the ready threads
 
-		}
+		// }
 
 		//when we get to this point we should have a thread ready and need
 		//to get the response. 
 		for(int i=0; i<w; i++) //check through each request channel
 		{
-			cerr<<"in EHT6";
+			
 			if(counterForThreads == k) break; // we have found all the threads possible so there is no need to keep searching
 			if(FD_ISSET(NRC[i]->read_fd(),&s)) //if we find the file descriptor in this request channel in the set
 			{
@@ -296,7 +324,7 @@ void* EHT(void* arg)//event handler thread
 				string returnString = NRC[i]-> cread(); // get the processed data 
 				num_responses++;
 				//git cout<<num_responses<<endl;
-				FD_CLR(NRC[i]->read_fd(),&sBackup); //remove the file descriptor from the set because we used it
+				//FD_CLR(NRC[i]->read_fd(),&sBackup); //remove the file descriptor from the set because we used it
 				//This where we put returnString into a response buffer **need a way to know which response buffer to put it in. **
 				
 				if(response_input[i].compare(stringJoe) == 0)
@@ -320,11 +348,18 @@ void* EHT(void* arg)//event handler thread
 				}
 						
 				
-				/* if(request_buffer.size() < 1) continue; // we should go to the next iteration if we have nothing in the buffer
+				// if(request_buffer.size() < 1) continue; // we should go to the next iteration if we have nothing in the buffer
 				// do not over pop request buffer bc you will get stuck
-				string send_request=request_buffer.pop();
-				RC[i]->cwrite(send_request); //send another request to data server
-				response_input[i]=send_request; */
+				
+				
+				if (sent < n*3)
+				{
+					sent ++;
+					string send_request=request_buffer.pop();
+					NRC[i]->cwrite(send_request); //send another request to data server
+					response_input[i]=send_request; 
+					
+				}
 				
 			}
 		}
@@ -375,7 +410,7 @@ double my_clock(void) {
   gettimeofday(&t, NULL);
   return (1.0e-6*t.tv_usec + t.tv_sec);
 }
-
+int c;
 int main(int argc, char * argv[]) {
 	/* struct sigaction periodic_histogram;
 	periodic_histogram.sa_handler=catch_alarm;
@@ -385,12 +420,11 @@ int main(int argc, char * argv[]) {
 	timer.it_interval.tv_sec=1;
 	sigaction(SIGALRM,&periodic_histogram,NULL);
 	setitimer(ITIMER_REAL,&timer,NULL); */
-	int c;
-	n=100;
+	n=1000;
 	b=100;
-	w=10;
-	h = "linux2";
-	p = 1515;
+	w=40;
+	h = "linux2.cse.tamu.edu";
+	p = 6002;
 	while ((c = getopt (argc,argv,"n:b:w:h:p")) != -1)
 	{
 		switch(c)
@@ -419,7 +453,7 @@ int main(int argc, char * argv[]) {
 			case 'h': //name of server host
 				if(h == "") // we don't need atoi since it is a string
 				{
-					h = "linux2";
+					h = "linux2.cs.tamu.edu";
 				}
 				break;
 			case 'p': //port number of server host
@@ -491,8 +525,10 @@ int main(int argc, char * argv[]) {
 	{
 		pthread_join(requestid[i],NULL);
 	}
+	
 	pthread_join(eventHandlerid,NULL);
 	//request_buffer.push("#"); //tells when to stop worker threads
+	
 	for(int i=0; i<3 ; i++)
 	{
 		pthread_join(responseid[i],NULL);
@@ -524,7 +560,7 @@ int main(int argc, char * argv[]) {
 	ofstream joeData;
 	ofstream janeData;
 	ofstream johnData;
-	/*
+	
 	//open files for writing
 	joeData.open("joeData.txt");
 	janeData.open("janeData.txt");
@@ -532,21 +568,21 @@ int main(int argc, char * argv[]) {
 	
 	cout<<"JOE's:"<<data.joe.size()<<endl;
 	data.show_histogram(2,joeData);
-	for(int a:data.joe)
-		cout<<a<<endl;
+	/* for(int a:data.joe)
+		cout<<a<<endl; */
 	cout<<"JANE's:"<<data.jane.size()<<endl;
 	data.show_histogram(1,janeData);
-	for(int a:data.jane)
-		cout<<a<<endl;
+	/* for(int a:data.jane)
+		cout<<a<<endl; */
 	cout<<"JOHN's:"<<data.john.size()<<endl;
 	data.show_histogram(0,johnData);
-	for(int a:data.john)
-		cout<<a<<endl;
+	/* for(int a:data.john)
+		cout<<a<<endl; */
 	
 	//close files. 
 	joeData.close();
 	janeData.close();
-	johnData.close(); */
+	johnData.close();
 
 		
 }
